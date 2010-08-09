@@ -1,0 +1,7 @@
+
+# TODO: SSL support
+# TODO: multiple server support (this shouldn't be too difficult)
+
+__author__ = "Evan Fosmark"
+__all__ = ["bot", "client", "connection", "ctcp", "events", "format", "ident",
+           "responses", "util"]
