@@ -15,6 +15,18 @@ X_QUOTE = "\\"
 commands = ["ACTION", "VERSION", "USERINFO", "CLIENTINFO", "ERRMSG", "PING", 
             "TIME", "FINGER"]
 
+_ctcp_level_quote_chars = [
+    ("\\",   "\\\\"),
+    ("\x01", "\\a")
+    ]
+
+_low_level_quote_chars = [
+    ("\x10",  "\x10\x10"),
+    ("\x00",  "\x100"),
+    ("\n",    "\x10n"),
+    ("\r",    "\x10r")
+    ]
+
 
 def tag(message):
     """ Wraps an X-DELIM (\x01) around a message to indicate that it needs to be
@@ -56,11 +68,24 @@ def strip_tagged(message):
     return re.sub("\x01(.*?)\x01", "", message)
 
 
+def low_level_quote(text):
+    """ Performs a low-level quoting in order to escape characters that could
+        otherwise not be represented in the typical IRC protocol.
+    """
+    # TODO: Strip cases where M_QUOTE is on its own
+    for (search, replace) in _low_level_quote_chars:
+        text = text.replace(search, replace)
+    return text
 
-_ctcp_level_quote_chars = [
-    ("\\",   "\\\\"),
-    ("\x01", "\\a")
-    ]
+
+def low_level_dequote(text):
+    """ Performs the complete opposite of `low_level_quote` as it converts the
+        quoted character back to their original forms.
+    """
+    # TODO: Strip cases where M_QUOTE is on its own
+    for (replace, search) in reversed(_low_level_quote_chars):
+        text = text.replace(search, replace)
+    return text
 
 
 def quote(text):
@@ -81,30 +106,18 @@ def dequote(text):
     return text
 
 
-
-_low_level_quote_chars = [
-    ("\x00",  "\x100"),
-    ("\n",    "\x10n"),
-    ("\r",    "\x10r"),
-    ("\x10",  "\x10\x10")
-    ]
-
-
-def low_level_quote(text):
-    """ Performs a low-level quoting in order to escape characters that could
-        otherwise not be represented in the typical IRC protocol.
-    """
-    # TODO: Strip cases where M_QUOTE is on its own
-    for (search, replace) in _low_level_quote_chars:
-        text = text.replace(search, replace)
-    return text
-
-
-def low_level_dequote(text):
-    """ Performs the complete opposite of `low_level_quote` as it converts the
-        quoted character back to their original forms.
-    """
-    for (replace, search) in reversed(_low_level_quote_chars):
-        text = text.replace(search, replace)
-    return text
-
+if __name__ == "__main__":
+    #message = "this is \r\n a test"
+    #message = low_level_quote(message)
+    #print repr(message)
+    #message = low_level_dequote(message)
+    #print repr(message)
+    
+    
+    message = "Say hi to Ron\n\t/actor"
+    message += tag("USERINFO")
+    print repr(message)
+    message = low_level_quote(message)
+    print repr(message)
+    message = low_level_dequote(message)
+    print repr(message)

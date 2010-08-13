@@ -43,6 +43,7 @@ class SimpleClient(object):
     def _dispatch_event(self, prefix, command, params):
         event = events.LineEvent(prefix, command, params)
         if event.command in ["PRIVMSG", "NOTICE"]:
+            #message, ctcp_requests = ctcp.split(event.trailing)
             event.trailing = ctcp.low_level_dequote(event.trailing)
             # TODO: Pull out the CTCP requests
         self.events.dispatch(self, event)

@@ -141,7 +141,7 @@ def help_handler(bot, event):
     help_msg.append(bold("***** End of Help *****"))
     for message in help_msg:
         bot.send_notice(event.origin, message)
-        time.sleep(0.3)
+        time.sleep(0.4)
 
 
 
