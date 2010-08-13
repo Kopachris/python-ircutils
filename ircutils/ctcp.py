@@ -15,12 +15,12 @@ X_QUOTE = "\\"
 commands = ["ACTION", "VERSION", "USERINFO", "CLIENTINFO", "ERRMSG", "PING", 
             "TIME", "FINGER"]
 
-_ctcp_level_quote_chars = [
+_ctcp_level_quote_map = [
     ("\\",   "\\\\"),
     ("\x01", "\\a")
     ]
 
-_low_level_quote_chars = [
+_low_level_quote_map = [
     ("\x10",  "\x10\x10"),
     ("\x00",  "\x100"),
     ("\n",    "\x10n"),
@@ -73,7 +73,7 @@ def low_level_quote(text):
         otherwise not be represented in the typical IRC protocol.
     """
     # TODO: Strip cases where M_QUOTE is on its own
-    for (search, replace) in _low_level_quote_chars:
+    for (search, replace) in _low_level_quote_map:
         text = text.replace(search, replace)
     return text
 
@@ -83,7 +83,7 @@ def low_level_dequote(text):
         quoted character back to their original forms.
     """
     # TODO: Strip cases where M_QUOTE is on its own
-    for (replace, search) in reversed(_low_level_quote_chars):
+    for (replace, search) in reversed(_low_level_quote_map):
         text = text.replace(search, replace)
     return text
 
@@ -92,7 +92,7 @@ def quote(text):
     """ This is CTCP-level quoting. It's only purpose is to quote out \x01 
         characters so they can be represented INSIDE tagged CTCP data.
     """
-    for (search, replace) in _ctcp_level_quote_chars:
+    for (search, replace) in _ctcp_level_quote_map:
         text = text.replace(search, replace)
     return text
 
@@ -101,23 +101,32 @@ def dequote(text):
     """ Performs the opposite of `quote()` as it will essentially strip the 
         quote character.
     """
-    for (replace, search) in reversed(_ctcp_level_quote_chars):
+    for (replace, search) in reversed(_ctcp_level_quote_map):
         text = text.replace(search, replace)
     return text
 
 
-if __name__ == "__main__":
-    #message = "this is \r\n a test"
-    #message = low_level_quote(message)
-    #print repr(message)
-    #message = low_level_dequote(message)
-    #print repr(message)
-    
-    
-    message = "Say hi to Ron\n\t/actor"
-    message += tag("USERINFO")
-    print repr(message)
-    message = low_level_quote(message)
-    print repr(message)
-    message = low_level_dequote(message)
-    print repr(message)
+def extract(message):
+    """ Splits a message between the actual message and any CTCP requests.
+        It returns a 2-part tuple of (message, ctcp_requests) where 
+        ctcp_requests is a list of requests.
+    """
+    stripped_message = []
+    ctcp_requests = []
+    in_tag = False
+    index = 0
+    while index < len(message):
+        if in_tag:
+            ctcp_request = []
+            while index < len(message) and message[index] != X_DELIM:
+                ctcp_request.append(message[index])
+                index += 1
+            ctcp_requests.append("".join(ctcp_request))
+            in_tag = False
+        else:
+            while index < len(message) and message[index] != X_DELIM:
+                stripped_message.append(message[index])
+                index += 1
+            in_tag = True
+        index += 1
+    return "".join(stripped_message), ctcp_requests
