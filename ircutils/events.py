@@ -160,6 +160,11 @@ class LineEvent(Event):
         else:
             self.trailing = ""
 
+class CTCPEvent(Event):
+    def __init__(self, command, params=None):
+        Event.__init__(self)
+        self.command = command
+        self.params = params or []
 
 class MessageEvent(Event):
     def __init__(self, line):

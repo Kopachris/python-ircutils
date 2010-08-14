@@ -12,59 +12,121 @@ import ctcp
 import events
 import protocol
 
-#TODO: low level quote trailing data
 
 class SimpleClient(object):
     
-    software = "ircutils <http://ircutils.evanfosmark.com>"
+    software = "ircutils <http://dev.guardedcode.com/projects/ircutils>"
     version = (0,4,3)
-    _default_listeners = (events.standard.items() + 
-                          events.ctcp.items() +
-                          events.replies.items()) # TODO: There has to be a better way
     
     def __init__(self, nick, ident=None, mode="+B", real_name=software):
         self.conn = connection.Connection()
         self.conn.handle_line = self._dispatch_event
         self.prev_nickname = None
         self.nickname = nick
-        self.ident = [ident, nick][ident is None]
+        self.ident = (ident, nick)[ident is None]
         self.mode = mode
         self.real_name = real_name
         self.channels = collections.defaultdict(protocol.Channel)
         self.events = events.EventDispatcher()
-        for name, listener in self._default_listeners:
+        self._register_default_listeners()
+        self._add_standard_handlers()
+
+    
+    def _register_default_listeners(self):
+        """ Registers the default listeners to the names listed in events.
+            Default listeners include:
+                Standard events -- events.standard
+                CTCP events -- events.ctcp
+                RPL_ events -- events.replies
+        """
+        
+        # Standard events
+        for name, listener in events.standard:
             self.events.register_listener(name, listener())
+        
+        # CTCP events
+        for name, listener in events.ctcp:
+            self.events.register_listener(name, listener())
+        
+        # RPL_ events
+        for name, listener in events.replies:
+            self.events.register_listener(name, listener())
+    
+    
+    def _add_standard_handlers(self):
+        """ Adds basic client handlers.
+            These handlers are bound to events that affect the data the the
+            client handles. It is required to have these in order to keep
+            track of things like client nick changes, joined channels, 
+            and channel user lists.
+        """
         self.events["any"].add_handler(_update_client_info)
         self.events["name_reply"].add_handler(_set_channel_names)
         self.events["part"].add_handler(_remove_channel_user)
         self.events["quit"].add_handler(_remove_channel_user)
         self.events["join"].add_handler(_add_channel_user)
     
+    
     def _dispatch_event(self, prefix, command, params):
+        """ Given the parameters, dispatch an event.
+            After first building an event, this method sends the event(s) to the
+            primary event dispatcher.
+            This replaces connection.Connection.handle_line
+        """
         event = events.LineEvent(prefix, command, params)
         if event.command in ["PRIVMSG", "NOTICE"]:
             event.trailing = ctcp.low_level_dequote(event.trailing)
             event.trailing, ctcp_requests = ctcp.extract(event.trailing)
-            self.events.dispatch(self, event)
-            #for request in ctcp_requests:
-            #    create an event for the request
-            #    dispatch the request
+            if event.trailing.strip() != "":
+                self.events.dispatch(self, event)
+            for request in ctcp_requests:
+                if " " not in request:
+                    command = request
+                    params = []
+                else:
+                    request_parts = request.split()
+                    command = "CTCP_%s" % request_parts[0]
+                    params = request_parts[1:]
+                ctcp_event = events.CTCPEvent(command, params)
+                self.events.dispatch(self, ctcp_event)
         else:
             self.events.dispatch(self, event)
     
+    
     def connect(self, hostname, port=6667, use_ssl=False, password=None):
+        """ Connect to an IRC server.
+        
+        Arguments:
+          hostname -- The host which you wish to connect
+          port     -- The port to use
+          use_ssl  -- True or false depending on whether it is an SSL connection
+          password -- The server password, if one exists.
+        """
         self.conn.connect(hostname, port, use_ssl, password)
         self.conn.execute("USER", self.ident, self.mode, "*", 
                                   trailing=self.real_name)
         self.conn.execute("NICK", self.nickname)
     
+    
     def register_listener(self, event_name, listener):
+        """ Registers an event listener for a given event name.
+            In essence, this binds the event name to the listener and simply 
+            provides an easier way to reference the listener.
+        """
         self.dispatcher.register_listener(event_name, listener)
     
+    
     def identify(self, ns_password):
+        """ Identify yourself with the NickServ service on IRC.
+            This assumes that NickServ is present on the server.
+        """
         self.send_message("NickServ", "IDENTIFY %s" % ns_password)
     
+    
     def join_channel(self, channel, key=None):
+        """ Join the specified channel.
+            Optionally, provide a key to the channel if it requires one.
+        """
         if channel == "0":
             self.channels = []
             self.conn.execute("JOIN", "0")
@@ -75,8 +137,13 @@ class SimpleClient(object):
                 params = [channel]
             self.conn.execute("JOIN", *params)
     
+    
     def part_channel(self, channel, message=None):
+        """ Leave the specified channel.
+            You may provide a message that shows up during departure.
+        """
         self.conn.execute("PART", channel, trailing=message)
+    
     
     def send_message(self, target, message, to_service=False):
         message = ctcp.low_level_quote(message)
