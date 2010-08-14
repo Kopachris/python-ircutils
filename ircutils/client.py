@@ -16,7 +16,7 @@ import protocol
 class SimpleClient(object):
     
     software = "ircutils <http://dev.guardedcode.com/projects/ircutils>"
-    version = (0,4,3)
+    version = (0,1,1)
     
     def __init__(self, nick, ident=None, mode="+B", real_name=software):
         self.conn = connection.Connection()
@@ -41,16 +41,16 @@ class SimpleClient(object):
         """
         
         # Standard events
-        for name, listener in events.standard:
-            self.events.register_listener(name, listener())
+        for name in events.standard:
+            self.events.register_listener(name, events.standard[name]())
         
         # CTCP events
-        for name, listener in events.ctcp:
-            self.events.register_listener(name, listener())
+        for name in events.ctcp:
+            self.events.register_listener(name, events.ctcp[name]())
         
         # RPL_ events
-        for name, listener in events.replies:
-            self.events.register_listener(name, listener())
+        for name in events.replies:
+            self.events.register_listener(name, events.replies[name]())
     
     
     def _add_standard_handlers(self):
@@ -73,6 +73,7 @@ class SimpleClient(object):
             primary event dispatcher.
             This replaces connection.Connection.handle_line
         """
+        print prefix, command, params
         event = events.LineEvent(prefix, command, params)
         if event.command in ["PRIVMSG", "NOTICE"]:
             event.trailing = ctcp.low_level_dequote(event.trailing)
