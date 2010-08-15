@@ -73,36 +73,25 @@ class SimpleClient(object):
             primary event dispatcher.
             This replaces connection.Connection.handle_line
         """
-        print prefix, command, params
-        event = events.LineEvent(prefix, command, params)
+        event = events.Event(prefix, command, params)
         if event.command in ["PRIVMSG", "NOTICE"]:
             event.trailing = ctcp.low_level_dequote(event.trailing)
             event.trailing, ctcp_requests = ctcp.extract(event.trailing)
             if event.trailing.strip() != "":
                 self.events.dispatch(self, event)
-            for request in ctcp_requests:
-                if " " not in request:
-                    command = request
-                    params = []
-                else:
-                    request_parts = request.split()
-                    command = "CTCP_%s" % request_parts[0]
-                    params = request_parts[1:]
-                ctcp_event = events.CTCPEvent(command, params)
-                self.events.dispatch(self, ctcp_event)
+            #for command, params in ctcp_requests:
+            #    ctcp_event = events.CTCPEvent()
+            #    ctcp_event.command = command
+            #    ctcp_event.params = params
+            #    ctcp_event.origin = event.origin
+            #    ctcp_event.channel =event.params[0]
+            #    self.events.dispatch(self, ctcp_event)
         else:
             self.events.dispatch(self, event)
     
     
     def connect(self, hostname, port=6667, use_ssl=False, password=None):
-        """ Connect to an IRC server.
-        
-        Arguments:
-          hostname -- The host which you wish to connect
-          port     -- The port to use
-          use_ssl  -- True or false depending on whether it is an SSL connection
-          password -- The server password, if one exists.
-        """
+        """ Connect to an IRC server. """
         self.conn.connect(hostname, port, use_ssl, password)
         self.conn.execute("USER", self.ident, self.mode, "*", 
                                   trailing=self.real_name)
@@ -147,61 +136,68 @@ class SimpleClient(object):
     
     
     def send_message(self, target, message, to_service=False):
+        """ Sends a message to the specified target.
+            If it is a service, it uses SQUERY instead.
+        """
         message = ctcp.low_level_quote(message)
         if to_service:
             self.conn.execute("SQUERY", target, message)
         else:
             self.conn.execute("PRIVMSG", target, trailing=message)
     
+    
     def send_notice(self, target, message):
+        """ Sends a NOTICE to the specified target. """
         message = ctcp.low_level_quote(message)
         self.conn.execute("NOTICE", target, trailing=message)
     
+    
     def send_ctcp(self, target, command, params=None):
+        """ Sends a CTCP (Client-to-Client-Protocol) message to the target. """
         if params is not None:
             params.insert(0, command)
             self.send_message(target, ctcp.tag(" ".join(params)))
         else:
             self.send_message(target, ctcp.tag(command))
     
+    
     def send_ctcp_reply(self, target, command, params=None):
+        """ Sends a CTCP reply message to the target. 
+            This differs from send_ctcp() because it uses NOTICE instead, as
+            specified by the CTCP documentation.
+        """
         if params is not None:
             params.insert(0, command)
-            self.send_notice(target, ctcp.mark(" ".join(params)))
+            self.send_notice(target, ctcp.tag(" ".join(params)))
         else:
-            self.send_notice(target, ctcp.mark(command))
+            self.send_notice(target, ctcp.tag(command))
+    
     
     def set_nickname(self, nickname):
+        """ Attempts to set the nickname for the client. """
         self.prev_nickname = self.nickname
         self.conn.execute("NICK", nickname)
     
+    
     def quit(self, message=None):
+        """ Disconnects from the IRC server.
+            If `message` is set, it is provided as a departing message.
+        """
         self.conn.execute("QUIT", trailing=message)
         self.channels = []
-    
-    def set_topic(self, topic):
-        self.conn.execute("TOPIC", trailing=topic)
-    
-    def set_mode(self, target, mode_string):
-        self.conn.execute("MODE", target, mode_string)
-    
-    def send_invite(self, target, channel):
-        self.conn.execute("INVITE", target, channel)
-    
-    def kick_user(self, channel, user, comment=None):
-        self.conn.execute("KICK", channel, user, trailing=comment)
+
     
     def start(self):
+        """ Begin the client. """
         self.conn.start()
+    
     
     # Some less verbose aliases
     join = join_channel
     part = part_channel
-    privmsg = send_message
+    privmsg = msg = send_message
     notice = send_notice
     nick = set_nickname
-    invite = send_invite
-    kick = kick_user
 
 
 

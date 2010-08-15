@@ -8,6 +8,12 @@
 import asyncore, asynchat
 import socket
 
+try:
+    import ssl
+    ssl_available = True
+except ImportError:
+    ssl_available = False
+
 import protocol
 import responses
 
@@ -16,6 +22,7 @@ class Connection(asynchat.async_chat):
         handles all of the dirty work such as maintaining input and output with
         the server as well as automatically handling PING requests.
     """
+    
     
     def __init__(self):
         """ Set up the object by specifying the terminator and initializing the
@@ -28,14 +35,20 @@ class Connection(asynchat.async_chat):
         self.ibuffer = []
         self.ping_auto_respond = True
     
+    
     def connect(self, hostname, port=6667, use_ssl=False, password=None):
         """ Create a connection to the specified host. If a port is given, it'll
             attempt to connect with that. A password may be specified and it'll
             be sent if the IRC server requires one.
         """
+        if use_ssl:
+            if not ssl_available:
+                raise socket.error("SSL library unavailable.")
+            self.socket = ssl.wrap_socket(self.socket)
         asynchat.async_chat.connect(self, (hostname, port))
         if password is not None:
             self.execute("PASS", password)
+    
     
     def collect_incoming_data(self, data):
         """ This gets called when data has been received. All it is in charge of
@@ -43,7 +56,8 @@ class Connection(asynchat.async_chat):
             be used when necessary.
         """
         self.ibuffer.append(data)
-
+    
+    
     def found_terminator(self):
         """ When this is activated, it means that the terminator (\r\n) has been
             read. When that happens, we get the input data, clear the buffer,
@@ -58,6 +72,7 @@ class Connection(asynchat.async_chat):
             command = responses.from_digit(command)
         self.handle_line(prefix, command, params)
     
+    
     def execute(self, command, *params, **kwargs):
         """ This places an IRC command on the output queue. If the last
             parameter in `params` contains any spaces, it is automatically 
@@ -70,18 +85,21 @@ class Connection(asynchat.async_chat):
             params.append(":%s" % kwargs["trailing"])
         self.push("%s %s\r\n" % (command.upper(), " ".join(params)))
     
+    
     def handle_connect(self):
         """ This is overridden so ``asynchat`` won't complain about it not 
             being handled.
         """
         pass
     
+    
     def handle_line(self, prefix, command, params):
         """ This gets called when one single line is ready to get handled. It
             is provided in the three main parts of an IRC message as specified
             by RFC-1459. This is primarily designed to be replaced.
         """
-        raise NotImplementedError("Connection.handle_line() must be replaced.")
+        raise NotImplementedError("handle_line() must be overridden.")
+    
     
     def start(self):
         """ This causes the connection to begin sending and receiving data. It

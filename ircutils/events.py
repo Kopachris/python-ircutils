@@ -13,44 +13,6 @@ import traceback
 import protocol
 
 
-class Priority(object):
-    """ The priority object is used to set an element at a specific end of the
-        sorted list of listeners. For instance, to make something low priotity,
-        one would use Priority.LOW.
-    """
-    def __init__(self, comparison):
-        self.comparison = comparison
-    
-    def __cmp__(self, other):
-        return self.comparison
-    
-    def __eq__(self, other):
-        if isinstance(other, Priority):
-            return self.comparison == other.comparison
-        else:
-            return False
-
-Priority.HIGH = Priority(1)
-Priority.NORMAL = Priority(0)
-Priority.LOW = Priority(-1)
-
-
-################################################################################
-################################################################################
-################################################################################
-
-class HaltHandling(Exception):
-    """ This is a special exception as when it gets thrown in a handler 
-        callback, it will halt any other callbacks to be run. This, combined 
-        with setting a handler to Priority.HIGH is exceptional for preventing
-        further handlers from being run.
-    """
-    pass
-
-################################################################################
-################################################################################
-################################################################################
-
 class EventDispatcher(object):
     """ The event dispatcher is in charge of three major tasks. (1) Registering
         listeners to the dispatcher, (2) providing a way to interact with the
@@ -89,10 +51,6 @@ class EventDispatcher(object):
 
 
 class Event(object):
-    pass
-    
-
-class LineEvent(Event):
     def __init__(self, prefix, command, params):
         self.prefix = prefix
         self.command = command
@@ -103,11 +61,6 @@ class LineEvent(Event):
         else:
             self.trailing = ""
 
-class CTCPEvent(Event):
-    def __init__(self, command, params=None):
-        Event.__init__(self)
-        self.command = command
-        self.params = params or []
 
 class MessageEvent(Event):
     def __init__(self, line):
@@ -143,16 +96,44 @@ class WhoisEvent(Event):
         self.user = None
         self.host = None
         self.real_name = None
-        self.is_operator = False
-        self.idle = 0
         self.channels = []
         self.server = None
-        self.special = []
 
 
 ################################################################################
 ################################################################################
 ################################################################################
+
+class Priority(object):
+    """ The priority object is used to set an element at a specific end of the
+        sorted list of listeners. For instance, to make something low priotity,
+        one would use Priority.LOW.
+    """
+    def __init__(self, comparison):
+        self.comparison = comparison
+    
+    def __cmp__(self, other):
+        return self.comparison
+    
+    def __eq__(self, other):
+        if isinstance(other, Priority):
+            return self.comparison == other.comparison
+        else:
+            return False
+
+Priority.HIGH = Priority(1)
+Priority.NORMAL = Priority(0)
+Priority.LOW = Priority(-1)
+
+
+
+class HaltHandling(Exception):
+    """ This is a special exception as when it gets thrown in a handler 
+        callback, it will halt any other callbacks to be run. This, combined 
+        with setting a handler to Priority.HIGH is exceptional for preventing
+        further handlers from being run.
+    """
+    pass
 
 
 class EventListener(object):
@@ -430,13 +411,16 @@ class NameReplyListener(ReplyListener):
 
 
 class WhoisListener(ReplyListener):
-
+    """
+        http://tools.ietf.org/html/rfc1459#section-4.5.2
+    """
     def __init__(self):
         ReplyListener.__init__(self)
         self._whois_replies = collections.defaultdict(WhoisEvent)
     
     def notify(self, client, event):
         if event.command == "RPL_WHOISUSER":
+            """<nick> <user> <host> * :<real name>"""
             reply = self._whois_replies[event.params[1]]
             reply.nick = event.params[1]
             reply.user = event.params[2] # TODO: get rid of the n= part
@@ -445,14 +429,14 @@ class WhoisListener(ReplyListener):
         elif event.command == "RPL_WHOISCHANNELS":
             channels = event.params[2].strip().split()
             self._whois_replies[event.params[1]].channels.extend(channels)
-        elif event.command == "RPL_WHOISSERVER":
-            self._whois_replies[event.params[1]].server = event.params[2]
-        elif event.command == "RPL_WHOISIDLE":
-            self._whois_replies[event.params[1]].idle = event.params[1]
-        elif event.command == "RPL_WHOISOPERATOR":
-            self._whois_replies[event.params[1]].is_operator = True
-        elif event.command == "RPL_WHOISSPECIAL":
-            self._whois_replies[event.params[1]].special.append(event.params[2])
+        #elif event.command == "RPL_WHOISSERVER":
+        #    self._whois_replies[event.params[1]].server = event.params[2]
+        #elif event.command == "RPL_WHOISIDLE":
+        #    self._whois_replies[event.params[1]].idle = event.params[1]
+        #elif event.command == "RPL_WHOISOPERATOR":
+        #    self._whois_replies[event.params[1]].is_operator = True
+        #elif event.command == "RPL_WHOISSPECIAL":
+        #    self._whois_replies[event.params[1]].special.append(event.params[2])
         elif event.command == "RPL_ENDOFWHOIS":
             self.activate_handlers(client, self._whois_replies[event.params[1]])
             del self._whois_replies[event.params[1]]

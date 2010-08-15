@@ -8,13 +8,8 @@
                   sent to it. It also auto-generates HELP messages based on
                   command descriptions and docstrings.
 """
-import re
-import time
-
 import client
 import events
-from format import bold, underline
-
 
 
 class SimpleBot(client.SimpleClient):
@@ -22,6 +17,7 @@ class SimpleBot(client.SimpleClient):
         When subclassing, make methods in the form of ``on_eventname`` and they
         will automatically be bound to that event listener.
     """
+    
     def __init__(self, nick):
         client.SimpleClient.__init__(self, nick)
         self._autobind_handlers()

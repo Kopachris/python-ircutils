@@ -7,8 +7,8 @@
 """
 import re
 
-# TODO: Add in mode parsing support.
-# TODO: Add a class for representing a User.
+#TODO: Add in mode parsing support.
+#TODO: Add a class for representing a User.
 
 def parse_line(data):
     """ Take an IRC line and break it into the command and the arguments for 
