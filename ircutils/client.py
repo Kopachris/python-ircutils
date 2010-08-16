@@ -62,6 +62,7 @@ class SimpleClient(object):
         """
         self.events["any"].add_handler(_update_client_info)
         self.events["name_reply"].add_handler(_set_channel_names)
+        self.events["ctcp_version"].add_handler(_reply_to_ctcp_version)
         self.events["part"].add_handler(_remove_channel_user)
         self.events["quit"].add_handler(_remove_channel_user)
         self.events["join"].add_handler(_add_channel_user)
@@ -81,13 +82,13 @@ class SimpleClient(object):
             if message_data.strip() != "":
                 event.params[-1] = message_data
                 self.events.dispatch(self, event)
-            #for command, params in ctcp_requests:
-            #    ctcp_event = events.CTCPEvent()
-            #    ctcp_event.command = command
-            #    ctcp_event.params = params
-            #    ctcp_event.origin = event.origin
-            #    ctcp_event.channel =event.params[0]
-            #    self.events.dispatch(self, ctcp_event)
+            for command, params in ctcp_requests:
+                ctcp_event = events.CTCPEvent()
+                ctcp_event.command = "CTCP_%s" % command
+                ctcp_event.params = params
+                ctcp_event.source = event.source
+                ctcp_event.target = event.target
+                self.events.dispatch(self, ctcp_event)
         else:
             self.events.dispatch(self, event)
     
@@ -174,9 +175,11 @@ class SimpleClient(object):
         else:
             self.send_notice(target, ctcp.tag(command))
     
+    
     def send_action(self, target, action_message):
         """ Perform an "action". """
         self.send_ctcp(target, "ACTION", [action_message])
+    
     
     def set_nickname(self, nickname):
         """ Attempts to set the nickname for the client. """
@@ -208,6 +211,12 @@ class SimpleClient(object):
 
 
 # TODO: UPDATE EVERYTHING HERE.
+
+def _reply_to_ctcp_version(client, event):
+    version_info = "IRCUtils:%s:Python" % ".".join(map(str, client.version))
+    print version_info
+    client.send_ctcp_reply(event.source, "VERSION", [version_info])
+
 
 def _update_client_info(client, event):
     command = event.command

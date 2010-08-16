@@ -39,7 +39,7 @@ class EventDispatcher(object):
             Any listener which analyses the event and finds it to have what
             the listener is looking for will then activate its event handlers.
         """
-        print event
+        print event.command, event.target, event.source, event.params
         for name, listener in self._listeners.items():
             if listener.handlers != []:
                 listener.notify(client, event)
@@ -70,9 +70,14 @@ class Event(object):
         else:
             self.target = None
             self.params = []
-    
-    def __str__(self):
-        return "<Event %s s:%r t:%r %s>" % (self.command, self.source, self.target, self.params)
+
+
+class CTCPEvent(Event):
+    def __init__(self):
+        self.source = None
+        self.target = None
+        self.command = None
+        self.params = []
 
 
 class MessageEvent(Event):
