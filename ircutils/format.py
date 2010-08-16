@@ -6,6 +6,7 @@
                   bold, underline, and reversed text. It also has the ability
                   to add color.
 """
+import re
 
 # Text formatting tags
 BOLD = "\x02"
@@ -31,6 +32,11 @@ PINK = "13"
 DARK_GRAY = "14"
 LIGHT_GRAY = "15"
 WHITE = "16"
+
+
+def filter(text):
+    """ Removes all of the formatting marks from ``text``. """
+    return re.sub("(\x02|\x1F|\x16|\x0F|(\x03(\d+(,\d+)?)?)?)", "", text)
 
 def bold(text):
     """ Causes the output text to be seen as bold in other clients. """

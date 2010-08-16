@@ -36,11 +36,16 @@ class Connection(asynchat.async_chat):
         self.ping_auto_respond = True
     
     
-    def connect(self, hostname, port=6667, use_ssl=False, password=None):
+    def connect(self, hostname, port=None, use_ssl=False, password=None):
         """ Create a connection to the specified host. If a port is given, it'll
             attempt to connect with that. A password may be specified and it'll
             be sent if the IRC server requires one.
         """
+        if port is None:
+            if use_ssl:
+                port = 7000
+            else:
+                port = 6667
         if use_ssl:
             if not ssl_available:
                 raise socket.error("SSL library unavailable.")

@@ -92,7 +92,7 @@ class SimpleClient(object):
             self.events.dispatch(self, event)
     
     
-    def connect(self, hostname, port=6667, use_ssl=False, password=None):
+    def connect(self, hostname, port=None, use_ssl=False, password=None):
         """ Connect to an IRC server. """
         self.conn.connect(hostname, port, use_ssl, password)
         self.conn.execute("USER", self.ident, self.mode, "*", 
