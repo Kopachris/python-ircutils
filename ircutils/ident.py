@@ -194,7 +194,7 @@ class FakeIdentServer(asyncore.dispatcher):
         self.listen(5)
         self.userid = userid
         self.os = os
-        self.response = resp_type
+        self.response = response
 
     def handle_accept(self):
         """ Dispatch a request onto an _IdentChannel instance. """
@@ -234,7 +234,7 @@ class IdentServer(asyncore.dispatcher):
             to be used """
         _GenuineIdentChannel(self, *self.accept())
     
-    def serve(self):
+    def start(self):
         """ Begin serving ident requests on the port specified. Instead of
             starting the server individually, you can combine multiple 
             services and call asyncore.loop().

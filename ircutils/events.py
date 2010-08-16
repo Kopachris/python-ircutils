@@ -39,6 +39,7 @@ class EventDispatcher(object):
             Any listener which analyses the event and finds it to have what
             the listener is looking for will then activate its event handlers.
         """
+        print event
         for name, listener in self._listeners.items():
             if listener.handlers != []:
                 listener.notify(client, event)
@@ -69,7 +70,6 @@ class Event(object):
         else:
             self.target = None
             self.params = []
-        print self
     
     def __str__(self):
         return "<Event %s s:%r t:%r %s>" % (self.command, self.source, self.target, self.params)
