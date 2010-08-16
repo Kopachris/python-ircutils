@@ -75,9 +75,11 @@ class SimpleClient(object):
         """
         event = events.Event(prefix, command, params)
         if event.command in ["PRIVMSG", "NOTICE"]:
-            event.trailing = ctcp.low_level_dequote(event.trailing)
-            event.trailing, ctcp_requests = ctcp.extract(event.trailing)
-            if event.trailing.strip() != "":
+            message_data = event.params[-1]
+            message_data = ctcp.low_level_dequote(message_data)
+            message_data, ctcp_requests = ctcp.extract(event.params[-1])
+            if message_data.strip() != "":
+                event.params[-1] = message_data
                 self.events.dispatch(self, event)
             #for command, params in ctcp_requests:
             #    ctcp_event = events.CTCPEvent()
@@ -172,6 +174,9 @@ class SimpleClient(object):
         else:
             self.send_notice(target, ctcp.tag(command))
     
+    def send_action(self, target, action_message):
+        """ Perform an "action". """
+        self.send_ctcp(target, "ACTION", [action_message])
     
     def set_nickname(self, nickname):
         """ Attempts to set the nickname for the client. """
@@ -185,6 +190,7 @@ class SimpleClient(object):
         """
         self.conn.execute("QUIT", trailing=message)
         self.channels = []
+        self.conn.close_when_done()
 
     
     def start(self):
@@ -195,11 +201,13 @@ class SimpleClient(object):
     # Some less verbose aliases
     join = join_channel
     part = part_channel
-    privmsg = msg = send_message
+    privmsg = send_message
     notice = send_notice
-    nick = set_nickname
+    action = send_action
 
 
+
+# TODO: UPDATE EVERYTHING HERE.
 
 def _update_client_info(client, event):
     command = event.command
@@ -230,17 +238,19 @@ def _update_client_info(client, event):
 
 
 def _set_channel_names(client, name_event):
-    print name_event.channel, name_event.name_list
+    return # TODO: Not yet functional. I broke it at some point.
     channel_name = name_event.channel
     client.channels[channel_name].user_list = name_event.name_list
 
 def _remove_channel_user(client, event):
-    channel = event.params[0]
+    return # TODO: Not yet functional. I broke it at some point.
+    channel = event.target
     if event.origin == client.nickname:
         del client.channels[channel]
-    elif event.origin in client.channels[channel].user_list:
-        client.channels[channel].user_list.remove(event.origin)
+    elif event.source in client.channels[channel].user_list:
+        client.channels[channel].user_list.remove(event.source)
 
 def _add_channel_user(client, event):
-    channel = event.params[0]
-    client.channels[channel].user_list.append(event.origin)
+    return # TODO: Not yet functional. I broke it at some point.
+    channel = event.target
+    client.channels[channel].user_list.append(event.source)

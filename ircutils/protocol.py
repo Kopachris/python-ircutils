@@ -8,7 +8,16 @@
 import re
 
 #TODO: Add in mode parsing support.
-#TODO: Add a class for representing a User.
+
+
+name_symbols = {
+    "+": "voice",
+    "%": "halfop",
+    "@": "op",
+    "&": "protectedop",
+    "~": "owner"
+    }
+
 
 def parse_line(data):
     """ Take an IRC line and break it into the command and the arguments for 
@@ -90,22 +99,23 @@ def filter_nick(nick):
     return nick
 
 
-_channel_regex = re.compile("^(#|\+|![a-z0-9]{5}|&)[^\x00\x07\r\ \,\:]+$")
+_channel_regex = re.compile("(?i)(?:#|\+|![a-z0-9]{5}|&)[^\x00\x07\s,\:]+$")
 def is_channel(channel):
-    return _channel_regex.match(channel, re.I) is not None
+    """ Checks to see if ``channel`` is a valid channel name.
+        It doesn't check if the channel exists. Only whether the name _could_
+        be a channel. More: http://tools.ietf.org/html/rfc2812#section-1.3
+        
+        Example:
+           >>> is_channel("#ircutils")
+           True
+           >>> is_channel("#invalid channel")
+           False
+           >>> is_channel("#also_inv:alid")
+           False
+    """
+    return _channel_regex.match(channel) is not None
 
 
-
-
-
-
-name_symbols = {
-    "+": "voice",
-    "%": "halfop",
-    "@": "op",
-    "&": "protectedop",
-    "~": "owner"
-    }
 
 
 class Channel(object):

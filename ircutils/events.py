@@ -51,31 +51,44 @@ class EventDispatcher(object):
 
 
 class Event(object):
+    """ Represents a standard event.
+        An event is made up of:
+           command -- The IRC command 
+           source -- The person sending the line (nick, server, or None)
+           user -- The user id. If one isn't present, this is None.
+           host -- The user's hostname. If one isn't present, this is None.
+           target -- The target of the event. Either a nick, channel, or None.
+           params -- A list of parameters for the event.
+    """
     def __init__(self, prefix, command, params):
-        self.prefix = prefix
         self.command = command
-        self.params = params
-        self.origin, self.user, self.host = protocol.parse_prefix(prefix)
-        if len(self.params) > 0:
-            self.trailing = self.params[-1]
+        self.source, self.user, self.host = protocol.parse_prefix(prefix)
+        if len(params) > 0:
+            self.target = params[0]
+            self.params = params[1:]
         else:
-            self.trailing = ""
+            self.target = None
+            self.params = []
+        print self
+    
+    def __str__(self):
+        return "<Event %s s:%r t:%r %s>" % (self.command, self.source, self.target, self.params)
 
 
 class MessageEvent(Event):
-    def __init__(self, line):
-        Event.__init__(self)
-        self.message = line.trailing
-        self.target = line.params[0]
-        self.sender = line.origin
-        self.type = line.command
-
-
-class NickChangeEvent(Event):
-    def __init__(self, line):
-        Event.__init__(self)
-        self.old_name = line.origin
-        self.new_name = line.params[0]
+    """ Represents a standard message received.
+        The message event contains:
+           message -- The text of the message
+           target -- The target of the event. Either a nick or channel.
+           source -- The source of the message. Either a nick or service.
+           command -- The command, either PRIVMSG or NOTICE.
+    """
+    def __init__(self, base_event):
+        self.base_event = base_event
+        self.message = base_event.params[-1]
+        self.target = base_event.target
+        self.source = base_event.source
+        self.command = base_event.command
 
 
 class ReplyEvent(Event):
@@ -84,14 +97,12 @@ class ReplyEvent(Event):
 
 class NameReplyEvent(Event):
     def __init__(self):
-        Event.__init__(self)
         self.channel = None
         self.name_list = []
 
 
 class WhoisEvent(Event):
     def __init__(self):
-        Event.__init__(self)
         self.nick = None
         self.user = None
         self.host = None
@@ -101,7 +112,7 @@ class WhoisEvent(Event):
 
 
 ################################################################################
-################################################################################
+####### listeners and helper code ##############################################
 ################################################################################
 
 class Priority(object):
@@ -136,6 +147,7 @@ class HaltHandling(Exception):
     pass
 
 
+
 class EventListener(object):
     """ This class is a simple event listener designed to be subclassed. Each
         event listener is in charge of activating its handlers.
@@ -146,7 +158,6 @@ class EventListener(object):
             module to keep the handlers ordered by priority.
         """
         self.handlers = []
-        self.handlers_activated = False
     
     def add_handler(self, handler, priority=Priority.NORMAL):
         """ Add a handler to the event listener. It will be called when the 
@@ -166,7 +177,7 @@ class EventListener(object):
         for p, l in self.handlers:
             if l == handler:
                 self.handlers.remove((p,l))
-
+    
     def activate_handlers(self, *args):
         """ This activates each handler that's bound to the listener. It works
             in order, so handlers with a higher priority will be activated 
@@ -182,8 +193,6 @@ class EventListener(object):
             except StandardError, ex:
                 traceback.print_exc(ex)
                 self.handlers.remove((p, handler))
-            else:
-                self.handlers_activated = True
     
     def notify(self, client, event):
         """ This is to be overridden when subclassed. It gets called after each
@@ -210,13 +219,13 @@ class MessageListener(EventListener):
 class PrivateMessageListener(MessageListener):
     def notify(self, client, event):
         if event.command == "PRIVMSG":
-            if not protocol.is_channel(event.params[0]):
+            if not protocol.is_channel(event.target):
                 self.activate_handlers(client, MessageEvent(event))
 
 class ChannelMessageListener(MessageListener):
     def notify(self, client, event):
         if event.command == "PRIVMSG":
-            if protocol.is_channel(event.params[0]):
+            if protocol.is_channel(event.target):
                 self.activate_handlers(client, MessageEvent(event))
 
 class NoticeListener(MessageListener):
@@ -227,13 +236,13 @@ class NoticeListener(MessageListener):
 class PrivateNoticeListener(NoticeListener):
     def notify(self, client, event):
         if event.command == "NOTICE":
-            if not protocol.is_channel(event.params[0]):
+            if not protocol.is_channel(event.target):
                 self.activate_handlers(client, MessageEvent(event))
 
 class ChannelNoticeListener(NoticeListener):
     def notify(self, client, event):
         if event.command == "NOTICE":
-            if protocol.is_channel(event.params[0]):
+            if protocol.is_channel(event.target):
                 self.activate_handlers(client, MessageEvent(event))
 
 class NickChangeListener(EventListener):
@@ -399,8 +408,8 @@ class NameReplyListener(ReplyListener):
     
     def notify(self, client, event):
         if event.command == "RPL_NAMREPLY":
-            channel = event.params[2]
-            names = event.params[3].strip().split(" ")
+            channel = event.params[1]
+            names = event.params[2].strip().split(" ")
             names = map(lambda n:self.name_prefix.sub(n, ""), names)
             self._name_lists[channel].name_list.extend(names)
         elif event.command == "RPL_ENDOFNAMES":
@@ -411,8 +420,8 @@ class NameReplyListener(ReplyListener):
 
 
 class WhoisListener(ReplyListener):
-    """
-        http://tools.ietf.org/html/rfc1459#section-4.5.2
+    """ http://tools.ietf.org/html/rfc1459#section-4.5.2
+    
     """
     def __init__(self):
         ReplyListener.__init__(self)
@@ -422,9 +431,9 @@ class WhoisListener(ReplyListener):
         if event.command == "RPL_WHOISUSER":
             """<nick> <user> <host> * :<real name>"""
             reply = self._whois_replies[event.params[1]]
-            reply.nick = event.params[1]
-            reply.user = event.params[2] # TODO: get rid of the n= part
-            reply.host = event.params[3]
+            reply.nick = event.params[0]
+            reply.user = event.params[1] # TODO: get rid of the n= part
+            reply.host = event.params[2]
             reply.real_name = event.params[5]
         elif event.command == "RPL_WHOISCHANNELS":
             channels = event.params[2].strip().split()
