@@ -33,10 +33,31 @@ DARK_GRAY = "14"
 LIGHT_GRAY = "15"
 WHITE = "16"
 
+# Filter modes
+FILTER_ALL = 1
+FILTER_BOLD = 2
+FILTER_UNDERLINE = 4
+FILTER_REVERSED = 8
+FILTER_COLORS = 16
 
-def filter(text):
-    """ Removes all of the formatting marks from ``text``. """
-    return re.sub("(\x02|\x1F|\x16|\x0F|(\x03(\d+(,\d+)?)?)?)", "", text)
+
+
+def filter(text, type=FILTER_ALL):
+    """ Removes all of the formatting marks from ``text``. 
+        Type can be either FILTER_ALL, FILTER_BOLD, FILTER_UNDERLINE, 
+        FILTER_REVERSED, or FILTER_COLORS.
+    """
+    if type == FILTER_BOLD:
+        return text.replace(BOLD, "")
+    elif type == FILTER_UNDERLINE:
+        return text.replace(UNDERLINE, "")
+    elif type == FILTER_REVERSED:
+        return text.replace(REVERSED, "")
+    elif type == FILTER_COLORS:
+        return re.sub("(\x03(\d+(,\d+)?)?)", "", text)
+    else:
+        return re.sub("(\x02|\x1F|\x16|\x0F|(\x03(\d+(,\d+)?)?)?)", "", text)
+
 
 def bold(text):
     """ Causes the output text to be seen as bold in other clients. """
