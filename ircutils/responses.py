@@ -1,9 +1,6 @@
-"""
-    Mapping of numeric responses with textual versions.
-    
-    Author:       Evan Fosmark
-    Description:  This file contains a mapping of reply command codes with a 
-                  text representation.
+"""This module contains a mapping of reply command codes with a text 
+representation.
+
 """
 
 
@@ -414,6 +411,7 @@ numeric_responses = {
 
 
 def from_digit(index):
+    
     if isinstance(index, int):
         index = "%03d" % index
     return numeric_responses.get(index, index)

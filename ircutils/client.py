@@ -1,10 +1,17 @@
 """
-    Asynchronous IRC connection management.
-    
-    Author:       Evan Fosmark <me@evanfosmark.com>
-    Description:  Tasked with managing inputs and outputs of an IRC 
-                  client connection.
+
+
+Also, it automatically takes care of actions in the background, such as:
+
+* **Client nickname tracking**. It will automatically update ``self.nickname``
+  if it gets changed by either you or the server.
+* **Client channel tracking**. It will monitor which channels the client
+  is in, and will add or remove them from ``self.channels`` automatically.
+* **CTCP version requests**. It automatically responds with a proper version
+  reply.
+  
 """
+
 import collections
 
 import connection
@@ -14,18 +21,22 @@ import protocol
 
 
 class SimpleClient(object):
+    """ SimpleClient is designed to provide a high level of abstraction
+    of the IRC protocol. It's methods are structured in a way that allows
+    you to often bypass the need to send raw IRC commands.
     
+    """
     software = "ircutils <http://dev.guardedcode.com/projects/ircutils>"
     version = (0,1,1)
     
-    def __init__(self, nick, ident=None, mode="+B", real_name=software):
+    def __init__(self, nick, ident=None, mode="+B"):
         self.conn = connection.Connection()
         self.conn.handle_line = self._dispatch_event
         self.prev_nickname = None
         self.nickname = nick
         self.ident = (ident, nick)[ident is None]
         self.mode = mode
-        self.real_name = real_name
+        self.real_name = nick
         self.channels = collections.defaultdict(protocol.Channel)
         self.events = events.EventDispatcher()
         self._register_default_listeners()
@@ -197,8 +208,20 @@ class SimpleClient(object):
 
     
     def start(self):
-        """ Begin the client. """
+        """ Begin the client. 
+            If you wish to run multiple clients at the same time, be sure to
+            use ``ircutils.start_all()`` instead.
+        
+        """
         self.conn.start()
+    
+    def execute(self, command, *args, **kwargs):
+        """ Execute an IRC command on the server.
+            For example, to send a raw PRIVMSG command, do this:
+            ``self.execute("PRIVMSG", channel, trailing="Hello, world!")``
+            
+        """
+        self.conn.execute(command, *args, **kwargs)
     
     
     # Some less verbose aliases
@@ -214,7 +237,6 @@ class SimpleClient(object):
 
 def _reply_to_ctcp_version(client, event):
     version_info = "IRCUtils:%s:Python" % ".".join(map(str, client.version))
-    print version_info
     client.send_ctcp_reply(event.source, "VERSION", [version_info])
 
 

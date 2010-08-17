@@ -1,10 +1,7 @@
-"""
-    IRC text formatting.
-    
-    Author:       Evan Fosmark <me@evanfosmark.com>
-    Description:  Tools for formatting text being sent outward. This includes
-                  bold, underline, and reversed text. It also has the ability
-                  to add color.
+""" This module has tools for formatting text being sent. This includes bold, 
+underline, and reversed text. It also has the ability to add color. 
+Aditionally, it provides a means of filtering out all or just some formatting
+marks.
 """
 import re
 
@@ -38,22 +35,38 @@ FILTER_ALL = 1
 FILTER_BOLD = 2
 FILTER_UNDERLINE = 4
 FILTER_REVERSED = 8
-FILTER_COLORS = 16
+FILTER_COLOR = 16
 
 
 
-def filter(text, type=FILTER_ALL):
-    """ Removes all of the formatting marks from ``text``. 
-        Type can be either FILTER_ALL, FILTER_BOLD, FILTER_UNDERLINE, 
-        FILTER_REVERSED, or FILTER_COLORS.
+def filter(text, filter_type=FILTER_ALL):
+    """ Removes the formatting marks from ``text``, as specified by the
+    ``filter_type``. By default, ``filter_type`` is set to remove all formatting
+    marks.
+        
+    +-----------------------------+-----------------------------+
+    | Options for ``filter_type``                               |
+    +-----------------------------+-----------------------------+
+    | Value                       | Action                      |
+    +=============================+=============================+
+    | ``format.FILTER_ALL``       | Removes ALL formatting      |
+    +-----------------------------+-----------------------------+
+    | ``format.FILTER_BOLD``      | Removes bold formatting     |
+    +-----------------------------+-----------------------------+
+    | ``format.FILTER_UNDERLINE`` | Removes underlined text     |
+    +-----------------------------+-----------------------------+
+    | ``format.FILTER_REVERSED``  | Removes reversed formatting |
+    +-----------------------------+-----------------------------+
+    | ``format.FILTER_COLOR``     | Removes color tags only     |
+    +-----------------------------+-----------------------------+
     """
-    if type == FILTER_BOLD:
+    if filter_type == FILTER_BOLD:
         return text.replace(BOLD, "")
-    elif type == FILTER_UNDERLINE:
+    elif filter_type == FILTER_UNDERLINE:
         return text.replace(UNDERLINE, "")
-    elif type == FILTER_REVERSED:
+    elif filter_type == FILTER_REVERSED:
         return text.replace(REVERSED, "")
-    elif type == FILTER_COLORS:
+    elif filter_type == FILTER_COLORS:
         return re.sub("(\x03(\d+(,\d+)?)?)", "", text)
     else:
         return re.sub("(\x02|\x1F|\x16|\x0F|(\x03(\d+(,\d+)?)?)?)", "", text)
@@ -74,6 +87,27 @@ def reversed(text):
 def color(text, foreground, background=None):
     """ Specifies a text color (and optionally a background color) for a piece
         of text being sent.
+        
+        +----------------------------------------------------+
+        | Available color options                            |
+        +===========================+========================+
+        | ``format.BLACK``          | ``format.BROWN``       |
+        +---------------------------+------------------------+
+        | ``format.NAVY_BLUE``      | ``format.PURPLE``      |
+        +---------------------------+------------------------+
+        | ``format.GREEN``          | ``format.OLIVE``       |
+        +---------------------------+------------------------+
+        | ``format.RED``            | ``format.YELLOW``      |
+        +---------------------------+------------------------+
+        | ``format.LIME_GREEN``     | ``format.PINK``        |
+        +---------------------------+------------------------+
+        | ``format.TEAL``           | ``format.DARK_GRAY``   |
+        +---------------------------+------------------------+
+        | ``format.AQUA``           | ``format.LIGHT_GRAY``  |
+        +---------------------------+------------------------+
+        | ``format.BLUE``           | ``format.WHITE``       |
+        +---------------------------+------------------------+
+
     """
     # TODO: Make sure format.color() is correct
     color = COLOR_TAG + foreground

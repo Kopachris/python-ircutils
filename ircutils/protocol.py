@@ -1,9 +1,5 @@
-""" 
-    IRC protocol utilities.
-    
-    Author:        Evan Fosmark <me@evanfosmark.com>
-    Description:   This module deals with parsing a line from an IRC server. It
-                   is very good at keeping to RFC-1459 in how the data is split.
+""" This module mainly focues on the details of the IRC protocol, so it covers
+actions such as line parsing and validation.
 """
 import re
 
@@ -23,9 +19,8 @@ def parse_line(data):
     """ Take an IRC line and break it into the command and the arguments for 
         such command. It returns an instance of IRCMessage that's based on the 
         data given. This follows RFC-1459, section 2.3.1 regarding message 
-        format. Link: http://tools.ietf.org/html/rfc1459#section-2.3.1
-        
-        Example:
+        format. 
+                
             >>> message = ":nickname!myuser@myhost.net PRIVMSG #gerty :Hello!"
             >>> parse_line(message)
             ('nickname!myuser@myhost.net', 'PRIVMSG', ['#gerty', 'Hello!'])
@@ -49,8 +44,7 @@ def parse_prefix(prefix):
         a server name or nick name, the user, and the host. This function 
         returns a 3-part tuple in the form of (nick, user, host). If user and
         host aren't present in the prefix, they will be equal to None.
-
-        Example:
+        
             >>> message = ":nickname!myuser@myhost.net PRIVMSG #gerty :Hello!"
             >>> prefix, cmd, params = parse_line(message)
             >>> parse_prefix(prefix)
@@ -103,9 +97,8 @@ _channel_regex = re.compile("(?i)(?:#|\+|![a-z0-9]{5}|&)[^\x00\x07\s,\:]+$")
 def is_channel(channel):
     """ Checks to see if ``channel`` is a valid channel name.
         It doesn't check if the channel exists. Only whether the name _could_
-        be a channel. More: http://tools.ietf.org/html/rfc2812#section-1.3
+        be a channel.
         
-        Example:
            >>> is_channel("#ircutils")
            True
            >>> is_channel("#invalid channel")

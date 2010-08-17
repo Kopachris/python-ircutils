@@ -1,13 +1,8 @@
-"""
-    Ident server utilities.
-    
-    Author:       Evan Fosmark
-    Description:  This module contains two distinct ident server 
-                  implemtations: `IdentServer` and `FakeIdentServer`. 
-                  IdentServer is a fully functional (RFC-1413 compatible) ident 
-                  server for Unix machines. FakeIdentServer can be used instead
-                  in order to specify your own output data. Typically, this is
-                  ideal.
+""" This module contains two distinct ident server implemtations: 
+``IdentServer`` and ``FakeIdentServer``. IdentServer is a fully functional 
+(RFC-1413 compatible) ident server for Unix machines. FakeIdentServer can be 
+used instead in order to specify your own output data. Typically, this is ideal.
+
 """
 import asyncore, asynchat
 import itertools
@@ -31,8 +26,8 @@ UNKNOWN_ERROR = "UNKNOWN-ERROR"
 
 def get_operating_system():
     """ Retreives an RFC-1340 compliant name of the operating system. If a name
-        doesn't seem to be available, then UNKNOWN is returned instead. This
-        function is limited by the possibilities of os.name values.
+    doesn't seem to be available, then UNKNOWN is returned instead. This
+    function is limited by the possibilities of os.name values.
     """
     os_map = {
         "nt": "WIN32",
@@ -47,8 +42,8 @@ def get_operating_system():
 
 def parse_request(request):
     """ Parse the request line as specified by RFC-1413. This automatically
-        converts the two ports to integers and returns a tuple in the form
-        of (server_port, client_port).
+    converts the two ports to integers and returns a tuple in the form
+    of (server_port, client_port).
     """
     server_port, client_port = request.split(",")
     return int(server_port), int(client_port)
@@ -57,8 +52,8 @@ def parse_request(request):
 
 def is_valid_port(port):
     """ Checks to see if a port is valid by checking if it is within the range 
-        of 1 and 65,535. This is the described range of ports in the TCP
-        protocol.
+    of 1 and 65,535. This is the described range of ports in the TCP
+    protocol.
     """
     return 1 <= port <= 65535
 
@@ -66,8 +61,8 @@ def is_valid_port(port):
 
 def generate_fake_userid():
     """ Create a fake user id. This gets used when FakeIdentServer is being used
-        and the userid was initially set to None. It creates a random UUID as
-        specified by RFC 4122.
+    and the userid was initially set to None. It creates a random UUID as
+    specified by RFC 4122.
     """
     return str(uuid.uuid4())
 
@@ -75,8 +70,8 @@ def generate_fake_userid():
 
 def get_user_id(server_port, client_port):
     """ Searches through /proc/net/tcp and /proc/net/tcp6 for a match of the
-        server_port and client_port on the machine. This is to be used with
-        IdentServer, thus making IdentServer only available on Unix platforms.
+    server_port and client_port on the machine. This is to be used with
+    IdentServer, thus making IdentServer only available on Unix platforms.
     """
     import pwd
     tcp = open("/proc/net/tcp", "r")
@@ -101,13 +96,13 @@ def get_user_id(server_port, client_port):
 
 class _IdentChannel(asynchat.async_chat):
     """ An instance of _IdentChannel represents a single request from a client
-        to the IdentServer. It isn't designed to be used directly.
+    to the IdentServer. It isn't designed to be used directly.
     """
     
     def __init__(self, server, sock, addr):
         """ Set up the object by specifying the terminator and initializing the
-            input buffer and using the socket passed from the dispatcher. 
-            The terminator for the ident protocol is CR+LF.
+        input buffer and using the socket passed from the dispatcher. The 
+        terminator for the ident protocol is CR+LF.
         """
         asynchat.async_chat.__init__(self, sock)
         self.set_terminator("\r\n")
@@ -116,15 +111,15 @@ class _IdentChannel(asynchat.async_chat):
 
     def collect_incoming_data(self, data):
         """ This gets called when data has been received. All it is in charge of
-            is appending that data to the input buffer (ibuffer) so that it can
-            be used when necessary.
+        is appending that data to the input buffer (ibuffer) so that it can
+        be used when necessary.
         """
         self.ibuffer.append(data)
 
     def found_terminator(self):
         """ When this is activated, it means that the terminator (\r\n) has been
-            read. When that happens, we get the input data, clear the buffer,
-            and then handle the data collected.
+        read. When that happens, we get the input data, clear the buffer,
+        and then handle the data collected.
         """
         response = self.handle_request("".join(self.ibuffer))
         self.ibuffer = []
@@ -177,16 +172,12 @@ class _GenuineIdentChannel(_IdentChannel):
 
 
 class FakeIdentServer(asyncore.dispatcher):
-    """ A simple and configurable ident server. The identity protocol is 
-        specified in RFC-1413. 
-    """
+    """ A simple and configurable ident server. """
     
-    def __init__(self, userid=None, os=None, response=USERID, port=113):
+    def __init__(self, userid=None, os=None, port=113):
         """ Create the ident server by creating a typical socket and then 
-            binding it to the port specified. Note that the standard ident
-            port is 113, but since that port is below 1024, you may need
-            root access. It is recommended that you instead forward port 113
-            to a higher port (such as 1113).
+        binding it to the port specified. 
+       
         """
         asyncore.dispatcher.__init__(self)
         self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -194,32 +185,24 @@ class FakeIdentServer(asyncore.dispatcher):
         self.listen(5)
         self.userid = userid
         self.os = os
-        self.response = response
+        self.response = USERID
 
     def handle_accept(self):
         """ Dispatch a request onto an _IdentChannel instance. """
         _FakeIdentChannel(self, *self.accept())
     
-    def serve(self):
-        """ Begin serving ident requests on the port specified. Instead of
-            starting the server individually, you can combine multiple 
-            services and call asyncore.loop().
-        """
+    def start(self):
+        """ Begin serving ident requests on the port specified. """
         asyncore.loop(map=self._map)
 
 
 
 class IdentServer(asyncore.dispatcher):
-    """ A simple and configurable ident server. The identity protocol is 
-        specified in RFC-1413. 
-    """
     
     def __init__(self, hidden=False, port=113, timeout=120):
         """ Create the ident server by creating a typical socket and then 
-            binding it to the port specified. Note that the standard ident
-            port is 113, but since that port is below 1024, you may need
-            root access. It is recommended that you instead forward port 113
-            to a higher port (such as 1113).
+            binding it to the port specified. 
+        
         """
         asyncore.dispatcher.__init__(self)
         self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -231,22 +214,21 @@ class IdentServer(asyncore.dispatcher):
 
     def handle_accept(self):
         """ Dispatch a request onto a _GenuineIdentChannel instance. This is
-            to be used """
+        to be used 
+        
+        """
         _GenuineIdentChannel(self, *self.accept())
     
     def start(self):
-        """ Begin serving ident requests on the port specified. Instead of
-            starting the server individually, you can combine multiple 
-            services and call asyncore.loop().
-        """
+        """ Begin serving ident requests on the port specified. """
         asyncore.loop(map=self._map)
 
 
 
 class IdentClient(socket.socket):
     """ This is a small and simple ident client for requesting ident information
-        from a server. Even though it isn't necessary for an IRC bot to have it,
-        I thought it'd be better for the ident module to have it anyhow.
+    from a server. 
+   
     """
     
     def __init__(self, hostname, port=113):

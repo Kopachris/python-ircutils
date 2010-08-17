@@ -155,7 +155,7 @@ class HaltHandling(Exception):
 
 class EventListener(object):
     """ This class is a simple event listener designed to be subclassed. Each
-        event listener is in charge of activating its handlers.
+        event listener is in charge of activating its handlers. 
     """
     
     def __init__(self):
