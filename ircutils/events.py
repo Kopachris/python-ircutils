@@ -1,9 +1,4 @@
-""" 
-    Events and event listeners.
-    
-    Author:        Evan Fosmark <me@evanfosmark.com>
-    Description:   This module gets used by client.py for event handling and 
-                   management.
+""" This module gets used by client.py for event handling and management.
 """
 import bisect
 import collections
