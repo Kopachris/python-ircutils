@@ -114,8 +114,8 @@ Let's add some code to run it::
         echo.start()
 
 
-Kick it up a notch (with our spice-weasel. BAM!)
-------------------------------------------------
+Kick it up a notch
+------------------
 Let's make it send an action whenever it joins a channel, and welcome 
 anybody who joins::
 

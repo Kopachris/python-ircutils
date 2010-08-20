@@ -18,7 +18,6 @@ Getting started
    installation
    tutorial
    bot
-   events
    format
    client
    connection
