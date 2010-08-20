@@ -1,0 +1,172 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>ircutils.protocol &mdash; IRCUtils v0.1.1 documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.1.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="IRCUtils v0.1.1 documentation" href="index.html" />
+    <link rel="next" title="ircutils.ctcp" href="ctcp.html" />
+    <link rel="prev" title="ircutils.connection" href="connection.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="ctcp.html" title="ircutils.ctcp"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="connection.html" title="ircutils.connection"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">IRCUtils v0.1.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-ircutils.protocol">
+<span id="ircutils-protocol"></span><h1>ircutils.protocol<a class="headerlink" href="#module-ircutils.protocol" title="Permalink to this headline">¶</a></h1>
+<p>This module mainly focuses on the details of the IRC protocol, so it covers
+actions such as line parsing and validation.</p>
+<dl class="function">
+<dt id="ircutils.protocol.filter_nick">
+<tt class="descname">filter_nick</tt><big>(</big><em>nick</em><big>)</big><a class="headerlink" href="#ircutils.protocol.filter_nick" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes all of the invalid characters from a nick.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ircutils.protocol.is_channel">
+<tt class="descname">is_channel</tt><big>(</big><em>channel</em><big>)</big><a class="headerlink" href="#ircutils.protocol.is_channel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks to see if <tt class="docutils literal"><span class="pre">channel</span></tt> is a valid channel name.
+It doesn&#8217;t check if the channel exists, rather only whether the name <em>could</em>
+be a channel.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">is_channel</span><span class="p">(</span><span class="s">&quot;#ircutils&quot;</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">is_channel</span><span class="p">(</span><span class="s">&quot;#invalid channel&quot;</span><span class="p">)</span>
+<span class="go">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">is_channel</span><span class="p">(</span><span class="s">&quot;#also_inv:alid&quot;</span><span class="p">)</span>
+<span class="go">False</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ircutils.protocol.is_nick">
+<tt class="descname">is_nick</tt><big>(</big><em>nick</em><big>)</big><a class="headerlink" href="#ircutils.protocol.is_nick" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks to see if a nickname <cite>nick</cite> is valid.
+According to <span class="target" id="index-0"></span><a class="rfc reference external" href="http://tools.ietf.org/html/rfc2812.html#2.3.1"><strong>RFC 2812</strong></a>, section 2.3.1, a nickname must start 
+with either a letter or one of the allowed special characters, and after
+that it may consist of any combination of letters, numbers, or allowed 
+special characters.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ircutils.protocol.parse_line">
+<tt class="descname">parse_line</tt><big>(</big><em>data</em><big>)</big><a class="headerlink" href="#ircutils.protocol.parse_line" title="Permalink to this definition">¶</a></dt>
+<dd><p>Takes an IRC line and breaks it into the three main parts; the prefix,
+command, and parameters. It gets returned in the form of 
+<tt class="docutils literal"><span class="pre">(prefix,</span> <span class="pre">command,</span> <span class="pre">params)</span></tt>.
+This follows <span class="target" id="index-1"></span><a class="rfc reference external" href="http://tools.ietf.org/html/rfc2812.html#2.3.1"><strong>RFC 2812</strong></a>, section 2.3.1 regarding message format.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">message</span> <span class="o">=</span> <span class="s">&quot;:nickname!myuser@myhost.net PRIVMSG #gerty :Hello!&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parse_line</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+<span class="go">(&#39;nickname!myuser@myhost.net&#39;, &#39;PRIVMSG&#39;, [&#39;#gerty&#39;, &#39;Hello!&#39;])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ircutils.protocol.parse_prefix">
+<tt class="descname">parse_prefix</tt><big>(</big><em>prefix</em><big>)</big><a class="headerlink" href="#ircutils.protocol.parse_prefix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Take the prefix of an IRC message and split it up into its main parts
+as defined by <span class="target" id="index-2"></span><a class="rfc reference external" href="http://tools.ietf.org/html/rfc2812.html#2.3.1"><strong>RFC 2812</strong></a>, section 2.3.1 which shows it consisting 
+of a server name or nick name, the user, and the host. This function 
+returns a 3-part tuple in the form of <tt class="docutils literal"><span class="pre">(nick,</span> <span class="pre">user,</span> <span class="pre">host)</span></tt>. If user 
+and host aren&#8217;t present in the prefix, they will be equal to <tt class="xref docutils literal"><span class="pre">None</span></tt>.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">message</span> <span class="o">=</span> <span class="s">&quot;:nickname!myuser@myhost.net PRIVMSG #gerty :Hello!&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">prefix</span><span class="p">,</span> <span class="n">cmd</span><span class="p">,</span> <span class="n">params</span> <span class="o">=</span> <span class="n">parse_line</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parse_prefix</span><span class="p">(</span><span class="n">prefix</span><span class="p">)</span>
+<span class="go">(&#39;nickname&#39;, &#39;myuser&#39;, &#39;myhost.net&#39;)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="connection.html"
+                        title="previous chapter">ircutils.connection</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="ctcp.html"
+                        title="next chapter">ircutils.ctcp</a></p>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="ctcp.html" title="ircutils.ctcp"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="connection.html" title="ircutils.connection"
+             >previous</a> |</li>
+        <li><a href="index.html">IRCUtils v0.1.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+    </div>
+  </body>
+</html>

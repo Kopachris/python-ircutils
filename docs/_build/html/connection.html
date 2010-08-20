@@ -1,0 +1,196 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>ircutils.connection &mdash; IRCUtils v0.1.1 documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.1.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="IRCUtils v0.1.1 documentation" href="index.html" />
+    <link rel="next" title="ircutils.protocol" href="protocol.html" />
+    <link rel="prev" title="ircutils.client" href="client.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="protocol.html" title="ircutils.protocol"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="client.html" title="ircutils.client"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">IRCUtils v0.1.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-ircutils.connection">
+<span id="ircutils-connection"></span><h1>ircutils.connection<a class="headerlink" href="#module-ircutils.connection" title="Permalink to this headline">¶</a></h1>
+<p>Manages I/O for a single IRC server and client. This includes reading 
+from the server and pushing a command to the server.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The connection module is very low level and typically shouldn&#8217;t be used
+directly. Most often you should be able to use the
+<a class="reference internal" href="bot.html#ircutils.bot.SimpleBot" title="ircutils.bot.SimpleBot"><tt class="xref py py-class docutils literal"><span class="pre">ircutils.bot.SimpleBot</span></tt></a> or the
+<a class="reference internal" href="client.html#ircutils.client.SimpleClient" title="ircutils.client.SimpleClient"><tt class="xref py py-class docutils literal"><span class="pre">ircutils.client.SimpleClient</span></tt></a> instead.</p>
+</div>
+<div class="section" id="the-connection-class">
+<h2>The Connection class<a class="headerlink" href="#the-connection-class" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ircutils.connection.Connection">
+<em class="property">class </em><tt class="descname">Connection</tt><a class="headerlink" href="#ircutils.connection.Connection" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class represents an asynchronous connection with an IRC server. It
+handles all of the dirty work such as maintaining input and output with
+the server as well as automatically handling PING requests.</p>
+<dl class="method">
+<dt id="ircutils.connection.Connection.connect">
+<tt class="descname">connect</tt><big>(</big><em>hostname</em>, <em>port=None</em>, <em>use_ssl=False</em>, <em>password=None</em><big>)</big><a class="headerlink" href="#ircutils.connection.Connection.connect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a connection to the specified host. If a port is given, it&#8217;ll
+attempt to connect with that. A password may be specified and it&#8217;ll
+be sent if the IRC server requires one.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ircutils.connection.Connection.execute">
+<tt class="descname">execute</tt><big>(</big><em>command</em>, <em>*params</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#ircutils.connection.Connection.execute" title="Permalink to this definition">¶</a></dt>
+<dd><p>This places an IRC command on the output queue. If you wish to use
+a trailing perameter, set it as a keyword argument, like so:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="bp">self</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;PRIVMSG&quot;</span><span class="p">,</span> <span class="s">&quot;#channel&quot;</span><span class="p">,</span> <span class="n">trailing</span><span class="o">=</span><span class="s">&quot;Hello!&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="ircutils.connection.Connection.start">
+<tt class="descname">start</tt><big>(</big><big>)</big><a class="headerlink" href="#ircutils.connection.Connection.start" title="Permalink to this definition">¶</a></dt>
+<dd><p>This causes the connection to begin sending and receiving data. It
+starts a private asyncore loop so if you want to run multiple bots
+on the same loop DO NOT call <tt class="docutils literal"><span class="pre">start()</span></tt> and instead call 
+<tt class="docutils literal"><span class="pre">ircutils.start_all()</span></tt> after they have been instantiated.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ircutils.connection.Connection.handle_line">
+<tt class="descname">handle_line</tt><big>(</big><em>prefix</em>, <em>command</em>, <em>params</em><big>)</big><a class="headerlink" href="#ircutils.connection.Connection.handle_line" title="Permalink to this definition">¶</a></dt>
+<dd><p>This gets called when one single line is ready to get handled. It
+is provided the three main parts of an IRC message. This method is 
+meant to be over-ridden or replaced.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<p>Here&#8217;s an example where the <cite>Connection</cite> class is used to print messages from
+the server:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">ircutils.connection</span> <span class="kn">import</span> <span class="n">Connection</span>
+
+<span class="k">class</span> <span class="nc">LowLevelMessageViewer</span><span class="p">(</span><span class="n">Connection</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">handle_line</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prefix</span><span class="p">,</span> <span class="n">command</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">command</span> <span class="o">==</span> <span class="s">&quot;PRIVMSG&quot;</span><span class="p">:</span>
+            <span class="k">print</span> <span class="n">prefix</span><span class="p">,</span> <span class="n">params</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">params</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">conn</span> <span class="o">=</span> <span class="n">LowLevelMessageViewer</span><span class="p">()</span>
+    <span class="n">conn</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&quot;irc.freenode.com&quot;</span><span class="p">)</span>
+    <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;USER&quot;</span><span class="p">,</span> <span class="s">&quot;example_bot&quot;</span><span class="p">,</span> <span class="s">&quot;+B&quot;</span><span class="p">,</span> <span class="s">&quot;*&quot;</span><span class="p">,</span> <span class="n">trailing</span><span class="o">=</span><span class="s">&quot;example_bot&quot;</span><span class="p">)</span>
+    <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;NICK&quot;</span><span class="p">,</span> <span class="s">&quot;example_bot&quot;</span><span class="p">)</span>
+    <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;JOIN&quot;</span><span class="p">,</span> <span class="s">&quot;#botwar&quot;</span><span class="p">)</span>
+    <span class="n">conn</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>As you can see, it&#8217;s pretty nitty-gritty doing it this way, but it works!</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">ircutils.connection</a><ul>
+<li><a class="reference internal" href="#the-connection-class">The Connection class</a></li>
+<li><a class="reference internal" href="#examples">Examples</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="client.html"
+                        title="previous chapter">ircutils.client</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="protocol.html"
+                        title="next chapter">ircutils.protocol</a></p>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="protocol.html" title="ircutils.protocol"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="client.html" title="ircutils.client"
+             >previous</a> |</li>
+        <li><a href="index.html">IRCUtils v0.1.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+    </div>
+  </body>
+</html>

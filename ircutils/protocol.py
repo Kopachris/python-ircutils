@@ -1,4 +1,4 @@
-""" This module mainly focues on the details of the IRC protocol, so it covers
+""" This module mainly focuses on the details of the IRC protocol, so it covers
 actions such as line parsing and validation.
 """
 import re
@@ -16,14 +16,14 @@ name_symbols = {
 
 
 def parse_line(data):
-    """ Take an IRC line and break it into the command and the arguments for 
-        such command. It returns an instance of IRCMessage that's based on the 
-        data given. This follows RFC-1459, section 2.3.1 regarding message 
-        format. 
+    """ Takes an IRC line and breaks it into the three main parts; the prefix,
+    command, and parameters. It gets returned in the form of 
+    ``(prefix, command, params)``.
+    This follows :rfc:`2812#2.3.1`, section 2.3.1 regarding message format. 
                 
-            >>> message = ":nickname!myuser@myhost.net PRIVMSG #gerty :Hello!"
-            >>> parse_line(message)
-            ('nickname!myuser@myhost.net', 'PRIVMSG', ['#gerty', 'Hello!'])
+        >>> message = ":nickname!myuser@myhost.net PRIVMSG #gerty :Hello!"
+        >>> parse_line(message)
+        ('nickname!myuser@myhost.net', 'PRIVMSG', ['#gerty', 'Hello!'])
     """
     if data[0] == ":":
         prefix, data = data[1:].split(" ", 1)
@@ -40,15 +40,15 @@ def parse_line(data):
 
 def parse_prefix(prefix):
     """ Take the prefix of an IRC message and split it up into its main parts
-        as defined by RFC-1459, section 2.3.1 which shows it consisting of
-        a server name or nick name, the user, and the host. This function 
-        returns a 3-part tuple in the form of (nick, user, host). If user and
-        host aren't present in the prefix, they will be equal to None.
+    as defined by :rfc:`2812#2.3.1`, section 2.3.1 which shows it consisting 
+    of a server name or nick name, the user, and the host. This function 
+    returns a 3-part tuple in the form of ``(nick, user, host)``. If user 
+    and host aren't present in the prefix, they will be equal to ``None``.
         
-            >>> message = ":nickname!myuser@myhost.net PRIVMSG #gerty :Hello!"
-            >>> prefix, cmd, params = parse_line(message)
-            >>> parse_prefix(prefix)
-            ('nickname', 'myuser', 'myhost.net')
+        >>> message = ":nickname!myuser@myhost.net PRIVMSG #gerty :Hello!"
+        >>> prefix, cmd, params = parse_line(message)
+        >>> parse_prefix(prefix)
+        ('nickname', 'myuser', 'myhost.net')
     """
     if prefix is None:
         return None, None, None
@@ -67,10 +67,10 @@ def parse_prefix(prefix):
 _special_chars = ('-', '[', ']', '\\', '`', '^', '{', '}', '_')
 def is_nick(nick):
     """ Checks to see if a nickname `nick` is valid.
-        According to RFC-2812, section 2.3.1, a nickname must start with either
-        a letter or one of the allowed special characters, and after that it may
-        consist of any combination of letters, numbers, or allowed special 
-        characters.
+    According to :rfc:`2812#2.3.1`, section 2.3.1, a nickname must start 
+    with either a letter or one of the allowed special characters, and after
+    that it may consist of any combination of letters, numbers, or allowed 
+    special characters.
     """
     if not nick[0].isalpha() and nick[0] not in _special_chars:
         return False
@@ -81,30 +81,25 @@ def is_nick(nick):
 
 
 def filter_nick(nick):
-    """ Removes all of the invalid characters from a nick.
-        If the nick is too short, "_" will be appended to the end. But if the
-        nick is 0-length, then this will simply return None
-    """
+    """ Removes all of the invalid characters from a nick. """
     nick = filter(lambda ch:ch.isalnum() or ch in _special_chars, iter(nick))
     if len(nick) == 0:
         return None
-    while len(result) < 3:
-        result.append("_")
     return nick
 
 
 _channel_regex = re.compile("(?i)(?:#|\+|![a-z0-9]{5}|&)[^\x00\x07\s,\:]+$")
 def is_channel(channel):
     """ Checks to see if ``channel`` is a valid channel name.
-        It doesn't check if the channel exists. Only whether the name _could_
-        be a channel.
+    It doesn't check if the channel exists, rather only whether the name *could*
+    be a channel.
         
-           >>> is_channel("#ircutils")
-           True
-           >>> is_channel("#invalid channel")
-           False
-           >>> is_channel("#also_inv:alid")
-           False
+       >>> is_channel("#ircutils")
+       True
+       >>> is_channel("#invalid channel")
+       False
+       >>> is_channel("#also_inv:alid")
+       False
     """
     return _channel_regex.match(channel) is not None
 

@@ -1,0 +1,295 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>ircutils.format &mdash; IRCUtils v0.1.1 documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.1.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="IRCUtils v0.1.1 documentation" href="index.html" />
+    <link rel="next" title="ircutils.client" href="client.html" />
+    <link rel="prev" title="ircutils.events" href="events.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="client.html" title="ircutils.client"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="events.html" title="ircutils.events"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">IRCUtils v0.1.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="ircutils-format">
+<h1>ircutils.format<a class="headerlink" href="#ircutils-format" title="Permalink to this headline">¶</a></h1>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If the channel you&#8217;re on has <tt class="docutils literal"><span class="pre">+c</span></tt> in the mode active, no formatting will be
+available as the server automatically strips all of the tags.</p>
+</div>
+<span class="target" id="module-ircutils.format"></span><p>This module has tools for formatting IRC text. This includes bold, 
+underline, and reversed text. It also has the ability to add color. 
+Additionally, it provides a means of filtering out specified formatting marks.</p>
+<dl class="function">
+<dt id="ircutils.format.bold">
+<tt class="descname">bold</tt><big>(</big><em>text</em><big>)</big><a class="headerlink" href="#ircutils.format.bold" title="Permalink to this definition">¶</a></dt>
+<dd><p>Causes the output text to be seen as bold in other clients.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ircutils.format.color">
+<tt class="descname">color</tt><big>(</big><em>text</em>, <em>foreground</em>, <em>background=None</em><big>)</big><a class="headerlink" href="#ircutils.format.color" title="Permalink to this definition">¶</a></dt>
+<dd><p>Specifies a text color (and optionally a background color) for a piece
+of text being sent.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="53%" />
+<col width="47%" />
+</colgroup>
+<thead valign="bottom">
+<tr><th class="head" colspan="2">Available color options</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr><td><tt class="docutils literal"><span class="pre">format.BLACK</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">format.BROWN</span></tt></td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">format.NAVY_BLUE</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">format.PURPLE</span></tt></td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">format.GREEN</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">format.OLIVE</span></tt></td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">format.RED</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">format.YELLOW</span></tt></td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">format.LIME_GREEN</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">format.PINK</span></tt></td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">format.TEAL</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">format.DARK_GRAY</span></tt></td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">format.AQUA</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">format.LIGHT_GRAY</span></tt></td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">format.BLUE</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">format.WHITE</span></tt></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="ircutils.format.filter">
+<tt class="descname">filter</tt><big>(</big><em>text</em>, <em>filter_type=1</em><big>)</big><a class="headerlink" href="#ircutils.format.filter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes the formatting marks from <tt class="docutils literal"><span class="pre">text</span></tt>, as specified by the
+<tt class="docutils literal"><span class="pre">filter_type</span></tt>. By default, <tt class="docutils literal"><span class="pre">filter_type</span></tt> is set to remove all formatting
+marks.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="50%" />
+<col width="50%" />
+</colgroup>
+<thead valign="bottom">
+<tr><th class="head" colspan="2">Options for <tt class="docutils literal"><span class="pre">filter_type</span></tt></th>
+</tr>
+<tr><th class="head">Value</th>
+<th class="head">Action</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr><td><tt class="docutils literal"><span class="pre">format.FILTER_ALL</span></tt></td>
+<td>Removes ALL formatting</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">format.FILTER_BOLD</span></tt></td>
+<td>Removes bold formatting</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">format.FILTER_UNDERLINE</span></tt></td>
+<td>Removes underlined text</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">format.FILTER_REVERSED</span></tt></td>
+<td>Removes reversed formatting</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">format.FILTER_COLOR</span></tt></td>
+<td>Removes color tags only</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="ircutils.format.reversed">
+<tt class="descname">reversed</tt><big>(</big><em>text</em><big>)</big><a class="headerlink" href="#ircutils.format.reversed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Causes output text to be seen as reversed (color) in other clients.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ircutils.format.underline">
+<tt class="descname">underline</tt><big>(</big><em>text</em><big>)</big><a class="headerlink" href="#ircutils.format.underline" title="Permalink to this definition">¶</a></dt>
+<dd><p>Causes output text to be seen as underlined in other clients.</p>
+</dd></dl>
+
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<p>Here are a few examples that should help get you started with learning how to
+format text.</p>
+<dl class="docutils">
+<dt><strong>Bold demonstration</strong></dt>
+<dd><p class="first">For this, we&#8217;ll be using <a class="reference internal" href="#ircutils.format.bold" title="ircutils.format.bold"><tt class="xref py py-func docutils literal"><span class="pre">ircutils.format.bold()</span></tt></a>:</p>
+<div class="last highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">ircutils</span> <span class="kn">import</span> <span class="n">bot</span><span class="p">,</span> <span class="n">format</span>
+
+<span class="k">class</span> <span class="nc">ExampleBot</span><span class="p">(</span><span class="n">bot</span><span class="o">.</span><span class="n">SimpleBot</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">on_welcome</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s">&quot;#ircutils&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">on_join</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">source</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">nickname</span><span class="p">:</span>
+            <span class="n">message</span> <span class="o">=</span> <span class="n">format</span><span class="o">.</span><span class="n">bold</span><span class="p">(</span><span class="s">&quot;Hello bold world!&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">send_message</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">target</span><span class="p">,</span> <span class="n">message</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+<dt><strong>Let&#8217;s add some color</strong></dt>
+<dd><p class="first">For this, we&#8217;ll be using <a class="reference internal" href="#ircutils.format.color" title="ircutils.format.color"><tt class="xref py py-func docutils literal"><span class="pre">ircutils.format.color()</span></tt></a>:</p>
+<div class="last highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">ircutils</span> <span class="kn">import</span> <span class="n">bot</span><span class="p">,</span> <span class="n">format</span>
+
+<span class="k">class</span> <span class="nc">ExampleBot</span><span class="p">(</span><span class="n">bot</span><span class="o">.</span><span class="n">SimpleBot</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">on_welcome</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s">&quot;#ircutils&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">on_join</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">source</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">nickname</span><span class="p">:</span>
+            <span class="n">message</span> <span class="o">=</span> <span class="n">format</span><span class="o">.</span><span class="n">bold</span><span class="p">(</span><span class="s">&quot;Hello bold and green world!&quot;</span><span class="p">)</span>
+            <span class="n">message</span> <span class="o">=</span> <span class="n">format</span><span class="o">.</span><span class="n">color</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">format</span><span class="o">.</span><span class="n">GREEN</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">send_message</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">target</span><span class="p">,</span> <span class="n">message</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+<dt><strong>Remove all formatting</strong></dt>
+<dd><p class="first">All of this formatting is great and all, but let&#8217;s sanatize the messages
+coming in by removing the formatting using <a class="reference internal" href="#ircutils.format.filter" title="ircutils.format.filter"><tt class="xref py py-func docutils literal"><span class="pre">ircutils.format.filter()</span></tt></a>:</p>
+<div class="last highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">ircutils</span> <span class="kn">import</span> <span class="n">bot</span><span class="p">,</span> <span class="n">format</span>
+
+<span class="k">class</span> <span class="nc">ExampleBot</span><span class="p">(</span><span class="n">bot</span><span class="o">.</span><span class="n">SimpleBot</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">on_welcome</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s">&quot;#ircutils&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">on_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="n">message</span> <span class="o">=</span> <span class="n">format</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">message</span><span class="p">)</span>
+        <span class="k">print</span> <span class="s">&quot;Message recieved:&quot;</span><span class="p">,</span> <span class="n">message</span>
+</pre></div>
+</div>
+</dd>
+<dt><strong>Remove just color tags</strong></dt>
+<dd><p class="first">Let&#8217;s say that for some reason we want to keep everything but the color in a
+message. Then, all we have to do is apply a more restrictive filter to it:</p>
+<div class="last highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">ircutils</span> <span class="kn">import</span> <span class="n">bot</span><span class="p">,</span> <span class="n">format</span>
+
+<span class="k">class</span> <span class="nc">ExampleBot</span><span class="p">(</span><span class="n">bot</span><span class="o">.</span><span class="n">SimpleBot</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">on_welcome</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s">&quot;#ircutils&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">on_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="n">message</span> <span class="o">=</span> <span class="n">format</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">message</span><span class="p">,</span> <span class="n">format</span><span class="o">.</span><span class="n">FILTER_COLOR</span><span class="p">)</span>
+        <span class="k">print</span> <span class="s">&quot;Message recieved:&quot;</span><span class="p">,</span> <span class="n">message</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">ircutils.format</a><ul>
+<li><a class="reference internal" href="#examples">Examples</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="events.html"
+                        title="previous chapter">ircutils.events</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="client.html"
+                        title="next chapter">ircutils.client</a></p>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="client.html" title="ircutils.client"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="events.html" title="ircutils.events"
+             >previous</a> |</li>
+        <li><a href="index.html">IRCUtils v0.1.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+    </div>
+  </body>
+</html>

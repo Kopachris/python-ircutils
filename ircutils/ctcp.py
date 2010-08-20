@@ -45,7 +45,7 @@ def low_level_quote(text):
 
 
 def low_level_dequote(text):
-    """ Performs the complete opposite of `low_level_quote` as it converts the
+    """ Performs the complete opposite of ``low_level_quote`` as it converts the
     quoted character back to their original forms.
     
     """
@@ -66,7 +66,7 @@ def quote(text):
 
 
 def dequote(text):
-    """ Performs the opposite of `quote()` as it will essentially strip the 
+    """ Performs the opposite of ``quote()`` as it will essentially strip the 
     quote character.
     
     """
@@ -77,8 +77,8 @@ def dequote(text):
 
 def extract(message):
     """ Splits a message between the actual message and any CTCP requests.
-    It returns a 2-part tuple of (message, ctcp_requests) where ctcp_requests 
-    is a list of requests.
+    It returns a 2-part tuple of ``(message, ctcp_requests)`` where 
+    ``ctcp_requests`` is a list of requests.
     
     """
     stripped_message = []
@@ -104,8 +104,8 @@ def extract(message):
 
 def _parse_request(section):
     """ This function takes a CTCP-tagged section of a message and breaks it in
-    to a two-part tuple in the form of (command, parameters) where `command`
-    is a string and `parameters` is a tuple.
+    to a two-part tuple in the form of ``(command, parameters)`` where 
+    ``command`` is a string and ``parameters`` is a tuple.
     
     """
     sections = section.split(" ")

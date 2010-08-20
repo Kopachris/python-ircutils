@@ -1,7 +1,6 @@
-""" This module has tools for formatting text being sent. This includes bold, 
+""" This module has tools for formatting IRC text. This includes bold, 
 underline, and reversed text. It also has the ability to add color. 
-Aditionally, it provides a means of filtering out all or just some formatting
-marks.
+Additionally, it provides a means of filtering out specified formatting marks.
 """
 import re
 

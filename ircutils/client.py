@@ -19,6 +19,7 @@ import ctcp
 import events
 import protocol
 
+# TODO: Add ability to auto-filter formatting from messages
 
 class SimpleClient(object):
     """ SimpleClient is designed to provide a high level of abstraction
