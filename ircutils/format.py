@@ -65,7 +65,7 @@ def filter(text, filter_type=FILTER_ALL):
         return text.replace(UNDERLINE, "")
     elif filter_type == FILTER_REVERSED:
         return text.replace(REVERSED, "")
-    elif filter_type == FILTER_COLORS:
+    elif filter_type == FILTER_COLOR:
         return re.sub("(\x03(\d+(,\d+)?)?)", "", text)
     else:
         return re.sub("(\x02|\x1F|\x16|\x0F|(\x03(\d+(,\d+)?)?)?)", "", text)

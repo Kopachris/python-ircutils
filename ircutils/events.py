@@ -34,7 +34,6 @@ class EventDispatcher(object):
             Any listener which analyses the event and finds it to have what
             the listener is looking for will then activate its event handlers.
         """
-        print event.command, event.target, event.source, event.params
         for name, listener in self._listeners.items():
             if listener.handlers != []:
                 listener.notify(client, event)
@@ -400,7 +399,6 @@ class ReplyListener(EventListener):
 
 
 class NameReplyListener(ReplyListener):
-    name_prefix = re.compile(r"^[\+%@&~]")
     
     def __init__(self):
         ReplyListener.__init__(self)
@@ -410,7 +408,9 @@ class NameReplyListener(ReplyListener):
         if event.command == "RPL_NAMREPLY":
             channel = event.params[1]
             names = event.params[2].strip().split(" ")
-            names = map(lambda n:self.name_prefix.sub(n, ""), names)
+            for n in range(len(names)):
+                if names[n][0] in protocol.name_symbols:
+                    names[n] = names[n][1:]
             self._name_lists[channel].name_list.extend(names)
         elif event.command == "RPL_ENDOFNAMES":
             name_event = self._name_lists[event.params[1]]

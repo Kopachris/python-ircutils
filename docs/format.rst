@@ -1,3 +1,4 @@
+.. _ircutils-format:
 ircutils.format
 =================
 

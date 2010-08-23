@@ -19,7 +19,8 @@ def parse_line(data):
     """ Takes an IRC line and breaks it into the three main parts; the prefix,
     command, and parameters. It gets returned in the form of 
     ``(prefix, command, params)``.
-    This follows :rfc:`2812#2.3.1`, section 2.3.1 regarding message format. 
+    This follows :rfc:`2812#section-2.3.1`, section 2.3.1 regarding message 
+    format. 
                 
         >>> message = ":nickname!myuser@myhost.net PRIVMSG #gerty :Hello!"
         >>> parse_line(message)
@@ -40,10 +41,11 @@ def parse_line(data):
 
 def parse_prefix(prefix):
     """ Take the prefix of an IRC message and split it up into its main parts
-    as defined by :rfc:`2812#2.3.1`, section 2.3.1 which shows it consisting 
-    of a server name or nick name, the user, and the host. This function 
-    returns a 3-part tuple in the form of ``(nick, user, host)``. If user 
-    and host aren't present in the prefix, they will be equal to ``None``.
+    as defined by :rfc:`2812#section-2.3.1`, section 2.3.1 which shows it 
+    consisting of a server name or nick name, the user, and the host. This 
+    function returns a 3-part tuple in the form of ``(nick, user, host)``. 
+    If user and host aren't present in the prefix, they will be equal 
+    to ``None``.
         
         >>> message = ":nickname!myuser@myhost.net PRIVMSG #gerty :Hello!"
         >>> prefix, cmd, params = parse_line(message)
@@ -67,7 +69,7 @@ def parse_prefix(prefix):
 _special_chars = ('-', '[', ']', '\\', '`', '^', '{', '}', '_')
 def is_nick(nick):
     """ Checks to see if a nickname `nick` is valid.
-    According to :rfc:`2812#2.3.1`, section 2.3.1, a nickname must start 
+    According to :rfc:`2812#section-2.3.1`, section 2.3.1, a nickname must start
     with either a letter or one of the allowed special characters, and after
     that it may consist of any combination of letters, numbers, or allowed 
     special characters.

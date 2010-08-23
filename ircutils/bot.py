@@ -9,7 +9,9 @@ import events
 class SimpleBot(client.SimpleClient):
     """ A simple IRC bot to subclass.  When subclassing, make methods in the 
     form of ``on_eventname`` and they will automatically be bound to that 
-    event listener.
+    event listener. 
+    This class inherits from :class:`ircutils.client.SimpleClient`, so be sure 
+    to check that documentation to see more of what is available.
     
     """
     def __init__(self, nick):

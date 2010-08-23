@@ -1,7 +1,7 @@
 """
 
 
-Also, it automatically takes care of actions in the background, such as:
+The SimpleClient automatically takes care of actions in the background, such as:
 
 * **Client nickname tracking**. It will automatically update ``self.nickname``
   if it gets changed by either you or the server.
@@ -9,6 +9,9 @@ Also, it automatically takes care of actions in the background, such as:
   is in, and will add or remove them from ``self.channels`` automatically.
 * **CTCP version requests**. It automatically responds with a proper version
   reply.
+* **PING responses**. This is actually handled by 
+  :class:`ircutils.connection.Connection`, but since SimpleClient is built upon
+  it, it gets handled fine at this layer.
   
 """
 
@@ -17,6 +20,7 @@ import collections
 import connection
 import ctcp
 import events
+import format
 import protocol
 
 # TODO: Add ability to auto-filter formatting from messages
@@ -27,8 +31,8 @@ class SimpleClient(object):
     you to often bypass the need to send raw IRC commands.
     
     """
-    software = "ircutils <http://dev.guardedcode.com/projects/ircutils>"
-    version = (0,1,1)
+    software = "ircutils <http://dev.guardedcode.com/projects/ircutils/>"
+    version = (0,1,2)
     
     def __init__(self, nick, ident=None, mode="+B"):
         self.conn = connection.Connection()
@@ -38,6 +42,7 @@ class SimpleClient(object):
         self.ident = (ident, nick)[ident is None]
         self.mode = mode
         self.real_name = nick
+        self.filter_formatting = True
         self.channels = collections.defaultdict(protocol.Channel)
         self.events = events.EventDispatcher()
         self._register_default_listeners()
@@ -91,6 +96,8 @@ class SimpleClient(object):
             message_data = event.params[-1]
             message_data = ctcp.low_level_dequote(message_data)
             message_data, ctcp_requests = ctcp.extract(event.params[-1])
+            if self.filter_formatting:
+                message_data = format.filter(message_data)
             if message_data.strip() != "":
                 event.params[-1] = message_data
                 self.events.dispatch(self, event)
@@ -252,7 +259,7 @@ def _update_client_info(client, event):
     elif command == "ERR_UNAVAILRESOURCE":
         if not protocol.is_channel(event.params[0]):
             client.nickname = client.prev_nickname
-    elif command == "NICK" and event.origin == client.nickname:
+    elif command == "NICK" and event.source == client.nickname:
         client.nickname = event.trailing
     
     if command in ["ERR_INVITEONLYCHAN", "ERR_CHANNELISFULL", 

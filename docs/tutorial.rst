@@ -142,5 +142,84 @@ anybody who joins::
         echo.start()
 
 
-That's it!
+Formatting IRC messages
+-----------------------
+.. note::
+   If the channel you're on has ``+c`` in the mode active, no formatting will be
+   available as the server automatically strips all of the tags.
 
+See the :ref:`ircutils.format documentation <ircutils-format>` for a 
+more in-depth coverage.
+
+The ``ircutils.format`` module has numerous functions for formatting outgoing 
+text, such as 
+:func:`bold() <ircutils.format.bold>`,
+:func:`underline() <ircutils.format.underline>`,
+:func:`reversed() <ircutils.format.reversed>`, and
+:func:`color() <ircutils.format.color>`. Here is a small example::
+
+	from ircutils import bot, format
+	
+	class ExampleBot(bot.SimpleBot):
+	
+	    def on_welcome(self, event):
+	        self.join("#ircutils")
+	
+	    def on_join(self, event):
+	        if event.source == self.nickname:
+	            message = format.bold("Hello bold and green world!")
+	            message = format.color(message, format.GREEN)
+	            self.send_message(event.target, message)
+
+Essentially, when using the formatting functions, apply it to the message
+before it's sent out.
+
+Running multiple bots at once
+-----------------------------
+To take advantage of the asynchronous nature of IRCUtils, we have the ability
+to run multiple bots at the same time. One common mistake is that people try
+to do something like the following::
+
+    # THIS WILL NOT WORK
+    bot1.start()
+    bot2.start()
+
+When ``start()`` gets called, it runs an internal loop and so anything after the
+call essentially gets ignored. To do this, we use the ``start_all()`` function.
+For example, look at this block of code::
+
+	from ircutils import bot, start_all
+	
+	
+	class HelloBot(bot.SimpleBot):
+	    
+	    def on_welcome(self, event):
+	        self.join("#ircutils")
+	    
+	    def on_message(self, event):
+	        if event.message.startswith("hey"):
+	            self.send_message(event.target, "Hello!")
+	
+	
+	class GoodbyeBot(bot.SimpleBot):
+	    
+	    def on_welcome(self, event):
+	        self.join("#ircutils")
+	    
+	    def on_message(self, event):
+	        if event.message.startswith("goodbye"):
+	            self.send_message(event.target, "Goodbye!")
+	
+	
+	if __name__ == "__main__":
+	    hello = HelloBot("hello_bot") 
+	    goodbye = GoodbyeBot("goodbye_bot")
+	    
+	    hello.connect("irc.freenode.com", 6667)
+	    goodbye.connect("irc.freenode.com", 6667)
+	    
+	    start_all()
+
+As you can see, we set up two different bots, have them both connect, and then
+instead of calling the ``start()`` methods on them, we simply use 
+``start_all()`` which we imported.
