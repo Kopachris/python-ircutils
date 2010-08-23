@@ -1,7 +1,7 @@
 
 __author__ = "Evan Fosmark"
 __all__ = ["bot", "client", "connection", "ctcp", "events", "format", "ident",
-           "responses", "util"]
+           "protocol", "responses"]
 
 
 def start_all():

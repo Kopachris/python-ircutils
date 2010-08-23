@@ -8,7 +8,8 @@ simple support for writing bots.
    These docs were last updated on |today|. Documentation is being added daily,
    so be sure to check back again in the future. If there is documentation
    that you wish to request, 
-   `file a ticket </projects/ircutils/newticket>`_ on the project page.
+   `file a ticket </projects/ircutils/newticket?component=Documentation>`_ 
+   on the project page.
 
 Getting started
 ----------------
