@@ -1,0 +1,14 @@
+LICENSE
+README
+setup.py
+ircutils/__init__.py
+ircutils/advanced_bot.py
+ircutils/bot.py
+ircutils/client.py
+ircutils/connection.py
+ircutils/ctcp.py
+ircutils/events.py
+ircutils/format.py
+ircutils/ident.py
+ircutils/protocol.py
+ircutils/responses.py

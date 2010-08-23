@@ -25,7 +25,7 @@ Getting started
    protocol
    ctcp
    ident
-
+   endnotes
 
 
 Reporting a bug

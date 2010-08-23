@@ -1,7 +1,7 @@
 
 IRCUtils is a Python framework for communicating with the  IRC protocol.
-It's designed for ease of use for anything you'd need. It also has fast and 
-simple support for writing bots. Its features include:
+It's designed for ease of use for anything you'd need. It also has fast 
+and simple support for writing bots. Its features include:
 
     * Asynchronous connection management
     * Configurable  ident server
@@ -12,3 +12,6 @@ simple support for writing bots. Its features include:
     * Automatic tracking of client nickname changes
     * Automatic channel tracking
     * Abstraction of the IRC protocol 
+
+Home page:		http://dev.guardedcode.com/projects/ircutils/
+Documentation: 	http://dev.guardedcode.com/docs/ircutils/
