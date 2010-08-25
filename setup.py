@@ -11,9 +11,9 @@
 from distutils.core import setup
 import os
 
-readme_file = os.path.join(os.path.dirname(__file__), 'README.txt')
+readme_file = os.path.join(os.path.dirname(__file__), 'README')
 
-setup(name='IRCUtils',
+setup(name='ircutils',
       version='0.1.2',
       description='IRC framework and utilities. Great for bot creation.',
       long_description=open(readme_file).read(),
