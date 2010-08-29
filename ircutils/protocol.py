@@ -1,6 +1,9 @@
 """ This module mainly focuses on the details of the IRC protocol, so it covers
 actions such as line parsing and validation.
+
 """
+import socket
+import struct
 import re
 
 #TODO: Add in mode parsing support.
@@ -13,6 +16,47 @@ name_symbols = {
     "&": "protectedop",
     "~": "owner"
     }
+
+
+commands_with_no_target = ["QUIT", "PING", "SQUIT"]
+
+
+def strip_name_symbol(nickname):
+    """ Removes the name symbols from the nickname.
+        
+        >>> strip_name_symbol("@opped_user")
+        'opped_user'
+        >>> strip_name_symbol("+voiced_user")
+        'voiced_user'
+        
+    """
+    if nickname[0] in name_symbols:
+        nickname = nickname[1:]
+    return nickname
+
+
+def parse_mode(mode_data):
+    """ Takes in a mode string and parses out which are to be added and which
+    are to be removed.
+    
+        >>> mode_data = "+ocn-Ct"
+        >>> parse_mode(mode_data)
+        ('ocn', 'Ct')
+    
+    """
+    add = remove = ""
+    directive = "+"
+    for char in mode_data:
+        if char in ("+", "-"):
+            directive = char
+        elif directive == "-":
+            remove += char
+        elif char == " ":
+            continue
+        else:
+            add += char
+    return (add, remove)
+
 
 
 def parse_line(data):
@@ -106,15 +150,31 @@ def is_channel(channel):
     return _channel_regex.match(channel) is not None
 
 
+def ip_to_ascii(ip_address):
+    """ Converts the quad IP format to an integer representation. """
+    return struct.unpack('!L', socket.inet_aton(ip_address))[0]
+
+
+def ascii_to_ip(ascii_ip_value):
+    """ Converts the integer value to a quad IP format. """
+    ascii_ip_value = long(ascii_ip_value)
+    return str(socket.inet_ntoa(struct.pack('!L', ascii_ip_value)))
 
 
 class Channel(object):
-    def __init__(self):
-        self.name = None
+    """ Represents a single channel. It contains the channel name as well as 
+    a list of users currently in the channel. For instance, if you have
+    joined channel ``#example`` and you wish to get a user list, then it's as
+    simple as: ``self.channels["#example"].user_list``
+    
+    """
+    def __init__(self, name):
+        self.name = name
         self.user_list = []
+        self.topic = ""
 
-    def __repr__(self):
-        return "<Channel %s>" % (self.name, self.user_list)
+    def __str__(self):
+        return "<Channel %s '%s users'>" % (self.name, len(self.user_list))
 
 
 if __name__ == "__main__":

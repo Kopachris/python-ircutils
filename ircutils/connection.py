@@ -71,7 +71,7 @@ class Connection(asynchat.async_chat):
     
     
     def handle_error(self):
-        raise # Causes the error to propigate. I hate the compact traceback
+        raise # Causes the error to propagate. I hate the compact traceback
               # that asyncore uses.
     
     

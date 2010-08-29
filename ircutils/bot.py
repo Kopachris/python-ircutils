@@ -2,8 +2,24 @@
 level of abstraction of the IRC protocol available in IRCUtils.
 
 """
+try:
+    import threading
+except ImportError:
+    import dummy_threading as threading
+
+
 import client
 import events
+
+
+def threaded(func):
+    """ Decorator that causes a callable to become threaded. This is useful to 
+    place on handlers in the event that they are highly CPU-bound.
+    """
+    def wrap(*args, **kwargs):
+        thread = threading.Thread(target=func, args=args, kwargs=kwargs)
+        thread.start()
+    return wrap 
 
 
 class SimpleBot(client.SimpleClient):
@@ -28,3 +44,22 @@ class SimpleBot(client.SimpleClient):
             if hasattr(self, name):
                 handler = getattr(self, name).__func__
                 self.events[listener_name].add_handler(handler)
+
+
+class _TestBot(SimpleBot):
+    """ A bot for debugging. Designed to be subclassed to building test bots.
+    
+    """
+    def __init__(self, nick):
+        SimpleBot.__init__(self, nick)
+        self.verbose = True
+    
+    def on_any(self, event):
+        kwds = {
+            "cmd": event.command,
+            "src": event.source,
+            "tgt": event.target,
+            "params": event.params
+            }
+        if self.verbose:
+            print "[{cmd}] s={src!r} t={tgt!r} p={params}".format(**kwds)

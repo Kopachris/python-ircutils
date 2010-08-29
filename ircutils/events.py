@@ -1,4 +1,11 @@
-""" This module gets used by client.py for event handling and management.
+""" This module gets used by :class:`ircutils.client.SimpleClient` and
+:class:`ircutils.bot.SimpleBot`  for event handling and management.
+
+Each line sent from the IRC server represents its own event. This information
+is parsed to fill in the values for the event object. In some cases, these
+single-line events are combined together to build more complex events that span
+multiple lines of data from the server.  This information
+is parsed to fill in the values for the event object. 
 """
 import bisect
 import collections
@@ -10,14 +17,15 @@ import protocol
 
 class EventDispatcher(object):
     """ The event dispatcher is in charge of three major tasks. (1) Registering
-        listeners to the dispatcher, (2) providing a way to interact with the
-        listeners, and (3) dispatching events.
+    listeners to the dispatcher, (2) providing a way to interact with the
+    listeners, and (3) dispatching events.
     """
     
     def __init__(self):
         self._listeners = {}
     
     def register_listener(self, name, listener):
+        """ Adds a listener to the dispatcher. """
         self._listeners[name] = listener
     
     def __setitem__(self, name, listener):
@@ -31,8 +39,9 @@ class EventDispatcher(object):
     
     def dispatch(self, client, event):
         """ Notifies all of the listeners that an event is available.
-            Any listener which analyses the event and finds it to have what
-            the listener is looking for will then activate its event handlers.
+        Any listener which analyses the event and finds it to have what
+        the listener is looking for will then activate its event handlers.
+        
         """
         for name, listener in self._listeners.items():
             if listener.handlers != []:
@@ -40,33 +49,54 @@ class EventDispatcher(object):
 
 
 
-################################################################################
-################################################################################
-################################################################################
+# ------------------------------------------------------------------------------
+# > BEGIN EVENT OBJECTS
+# ------------------------------------------------------------------------------
+
 
 
 class Event(object):
-    """ Represents a standard event.
-        An event is made up of:
-           command -- The IRC command 
-           source -- The person sending the line (nick, server, or None)
-           user -- The user id. If one isn't present, this is None.
-           host -- The user's hostname. If one isn't present, this is None.
-           target -- The target of the event. Either a nick, channel, or None.
-           params -- A list of parameters for the event.
-    """
+    pass
+
+
+class StandardEvent(Event):
+    """ Represents a standard event. """
     def __init__(self, prefix, command, params):
         self.command = command
         self.source, self.user, self.host = protocol.parse_prefix(prefix)
         if len(params) > 0:
-            self.target = params[0]
-            self.params = params[1:]
+            if params[0] not in protocol.commands_with_no_target:
+                self.target = params[0]
+                self.params = params[1:]
+            else:
+                self.target = None
+                self.params = params
         else:
             self.target = None
             self.params = []
 
 
-class CTCPEvent(Event):
+class MessageEvent(StandardEvent):
+    """ MessageEvent has all of the attributes as 
+    :class:`ircutils.events.StandardEvent` with the added attribute ``message``
+    which holds the message data.
+    ::
+       
+           from ircutils import bot
+           
+           class PrinterBot(bot.SimpleBot):
+               
+               def on_message(self, event):
+                   print "<{0}> {1}".format(event.source, event.message)
+    
+    """
+    def __init__(self, prefix, command, params):
+        StandardEvent.__init__(self, prefix, command, params)
+        self.message = params[-1]
+
+
+class CTCPEvent(StandardEvent):
+    """ Represents a Client-To-Client Protocol (CTCP) event. """
     def __init__(self):
         self.source = None
         self.target = None
@@ -74,104 +104,38 @@ class CTCPEvent(Event):
         self.params = []
 
 
-class MessageEvent(Event):
-    """ Represents a standard message received.
-        The message event contains:
-           message -- The text of the message
-           target -- The target of the event. Either a nick or channel.
-           source -- The source of the message. Either a nick or service.
-           command -- The command, either PRIVMSG or NOTICE.
-    """
-    def __init__(self, base_event):
-        self.base_event = base_event
-        self.message = base_event.params[-1]
-        self.target = base_event.target
-        self.source = base_event.source
-        self.command = base_event.command
 
-
-class ReplyEvent(Event):
-    pass
-
-
-class NameReplyEvent(Event):
-    def __init__(self):
-        self.channel = None
-        self.name_list = []
-
-
-class WhoisEvent(Event):
-    def __init__(self):
-        self.nick = None
-        self.user = None
-        self.host = None
-        self.real_name = None
-        self.channels = []
-        self.server = None
-
-
-################################################################################
-####### listeners and helper code ##############################################
-################################################################################
-
-class Priority(object):
-    """ The priority object is used to set an element at a specific end of the
-        sorted list of listeners. For instance, to make something low priotity,
-        one would use Priority.LOW.
-    """
-    def __init__(self, comparison):
-        self.comparison = comparison
-    
-    def __cmp__(self, other):
-        return self.comparison
-    
-    def __eq__(self, other):
-        if isinstance(other, Priority):
-            return self.comparison == other.comparison
-        else:
-            return False
-
-Priority.HIGH = Priority(1)
-Priority.NORMAL = Priority(0)
-Priority.LOW = Priority(-1)
-
-
-
-class HaltHandling(Exception):
-    """ This is a special exception as when it gets thrown in a handler 
-        callback, it will halt any other callbacks to be run. This, combined 
-        with setting a handler to Priority.HIGH is exceptional for preventing
-        further handlers from being run.
-    """
-    pass
+# ------------------------------------------------------------------------------
+# > BEGIN EventListener AND HELPER CODE
+# ------------------------------------------------------------------------------
 
 
 
 class EventListener(object):
     """ This class is a simple event listener designed to be subclassed. Each
-        event listener is in charge of activating its handlers. 
+    event listener is in charge of activating its handlers. 
     """
-    
     def __init__(self):
-        """ Sets up a list to be used by the `insort` method of the `bisect`
-            module to keep the handlers ordered by priority.
-        """
         self.handlers = []
     
-    def add_handler(self, handler, priority=Priority.NORMAL):
+    def add_handler(self, handler, priority=0):
         """ Add a handler to the event listener. It will be called when the 
-            listener decides it's time. It will place it in order depending
-            on the priority specified. The default is Priority.NORMAL. It can
-            be any number you wish or Priority.LOW, Priority.NORMAL, or
-            Priority.HIGH.
+        listener decides it's time. It will place it in order depending
+        on the priority specified. The default is 0. 
+        Event handlers take the form of::
+            
+            def my_handler(client, event):
+                # Do stuff with the client and event here
+                # Example: 
+                client.send_message(event.target, "Hi!")
+                
         """
         bisect.insort(self.handlers, (priority, handler))
-        return handler
     
     def remove_handler(self, handler):
         """ This removes all handlers that are equal to the ``handler`` which
-            are bound to the event listener. This isn't too inefficient since
-            it is O(n^2).
+        are bound to the event listener. This isn't too inefficient since
+        it is ``O(n^2)``.
         """
         for p, l in self.handlers:
             if l == handler:
@@ -179,26 +143,64 @@ class EventListener(object):
     
     def activate_handlers(self, *args):
         """ This activates each handler that's bound to the listener. It works
-            in order, so handlers with a higher priority will be activated 
-            before all others. The ``args`` sent to this will be sent to each
-            handler. It's a good idea to always make sure to send in the client
-            and the event.
+        in order, so handlers with a higher priority will be activated 
+        before all others. The ``args`` sent to this will be sent to each
+        handler. It's a good idea to always make sure to send in the client
+        and the event.
         """
         for p, handler in self.handlers:
             try:
                 handler(*args)
-            except HaltHandling:
-                break
             except StandardError, ex:
                 traceback.print_exc(ex)
                 self.handlers.remove((p, handler))
     
     def notify(self, client, event):
         """ This is to be overridden when subclassed. It gets called after each
-            event generated by the system. If the event listener decides to, it
-            should run its handlers from here.
+        event generated by the system. If the event listener decides to, it
+        should run its handlers from here.
         """
-        raise NotImplementedError("This must be overridden.")
+        raise NotImplementedError("notify() must be overridden.")
+
+
+
+
+
+class _CustomListener(EventListener):
+    
+    def __init__(self, command, target, source):
+        EventListener.__init__(self)
+        self.command = command
+        self.target = target
+        self.source = source
+    
+    def notify(self, client, event):
+        if self.command in (None, event.command) and \
+           self.target  in (None, event.target)  and \
+           self.source  in (None, event.source):
+            self.activate_handlers(client, event)
+
+
+def create_listener(command=None, target=None, source=None):
+    """ Create a listener on-the-fly. This is the simplest way of creating event
+    listeners, but also very limited. Examples::
+    
+        # Creates a listener that looks for events where the command is PRIVMSG
+        msg_listener = events.create_listener(command="PRIVMSG")
+        
+        # Listens for events from the NickServ service
+        ns_listener = events.create_lisener(source="NickServ")
+        
+        # Listens for events that are messages to a specific channel
+        example = events.create_listener(command="PRIVMSG", target="#channel")
+    """
+    return _CustomListener(command, target, source)
+
+
+
+# ------------------------------------------------------------------------------
+# > BEGIN BUILT-IN EVENT LISTENERS
+# ------------------------------------------------------------------------------
 
 
 class AnyListener(EventListener):
@@ -209,40 +211,6 @@ class WelcomeListener(EventListener):
     def notify(self, client, event):
         if event.command == "RPL_WELCOME":
             self.activate_handlers(client, event)
-
-class MessageListener(EventListener):
-    def notify(self, client, event):
-        if event.command in ["PRIVMSG", "NOTICE"]:
-            self.activate_handlers(client, MessageEvent(event))
-
-class PrivateMessageListener(MessageListener):
-    def notify(self, client, event):
-        if event.command == "PRIVMSG":
-            if not protocol.is_channel(event.target):
-                self.activate_handlers(client, MessageEvent(event))
-
-class ChannelMessageListener(MessageListener):
-    def notify(self, client, event):
-        if event.command == "PRIVMSG":
-            if protocol.is_channel(event.target):
-                self.activate_handlers(client, MessageEvent(event))
-
-class NoticeListener(MessageListener):
-    def notify(self, client, event):
-        if event.command == "NOTICE":
-            self.activate_handlers(client, MessageEvent(event))
-
-class PrivateNoticeListener(NoticeListener):
-    def notify(self, client, event):
-        if event.command == "NOTICE":
-            if not protocol.is_channel(event.target):
-                self.activate_handlers(client, MessageEvent(event))
-
-class ChannelNoticeListener(NoticeListener):
-    def notify(self, client, event):
-        if event.command == "NOTICE":
-            if protocol.is_channel(event.target):
-                self.activate_handlers(client, MessageEvent(event))
 
 class NickChangeListener(EventListener):
     def notify(self, client, event):
@@ -284,35 +252,67 @@ class ErrorListener(EventListener):
         if event.command == "ERROR":
             self.activate_handlers(client, event)
 
-class UnknownListener(EventListener):
-    def notify(self, client, event):
-        self.activate_handlers(client, event)
-
 
 
 standard = {
     "any": AnyListener,
     "welcome": WelcomeListener,
-    "message": MessageListener,
-    "channel_message": ChannelMessageListener,
-    "private_message": PrivateMessageListener,
-    "channel_notice": ChannelNoticeListener,
-    "private_notice": PrivateNoticeListener,
-    "nick_change": NickChangeListener,
     "ping": PingListener,
     "invite": InviteListener,
     "kick": KickListener,
     "join": JoinListener,
     "quit": QuitListener,
     "part": PartListener,
-    "error": ErrorListener,
-    "unknown": UnknownListener
+    "nick_change": NickChangeListener,
+    "error": ErrorListener
     }
 
 
-################################################################################
-################################################################################
-################################################################################
+
+class MessageListener(EventListener):
+    def notify(self, client, event):
+        if event.command in ["PRIVMSG", "NOTICE"]:
+            self.activate_handlers(client, event)
+
+class PrivateMessageListener(MessageListener):
+    def notify(self, client, event):
+        if event.command == "PRIVMSG":
+            if not protocol.is_channel(event.target):
+                self.activate_handlers(client, event)
+
+class ChannelMessageListener(MessageListener):
+    def notify(self, client, event):
+        if event.command == "PRIVMSG":
+            if protocol.is_channel(event.target):
+                self.activate_handlers(client, event)
+
+class NoticeListener(MessageListener):
+    def notify(self, client, event):
+        if event.command == "NOTICE":
+            self.activate_handlers(client, event)
+
+class PrivateNoticeListener(NoticeListener):
+    def notify(self, client, event):
+        if event.command == "NOTICE":
+            if not protocol.is_channel(event.target):
+                self.activate_handlers(client, event)
+
+class ChannelNoticeListener(NoticeListener):
+    def notify(self, client, event):
+        if event.command == "NOTICE":
+            if protocol.is_channel(event.target):
+                self.activate_handlers(client, event)
+
+
+
+messages = {
+    "message": MessageListener,
+    "channel_message": ChannelMessageListener,
+    "private_message": PrivateMessageListener,
+    "channel_notice": ChannelNoticeListener,
+    "private_notice": PrivateNoticeListener
+    }
+
 
 
 class CTCPListener(EventListener):
@@ -356,19 +356,8 @@ class CTCPTimeListener(CTCPListener):
 
 class DCCListener(CTCPListener):
     def notify(self, client, event):
-        if event.command.startswith("DCC_"):
+        if event.command.startswith("CTCP_DCC"):
             self.activate_handlers(client, event)
-
-class DCCConnectListener(DCCListener):
-    def notify(self, client, event):
-        if event.command == "DCC_CONNECT":
-            self.activate_handlers(client, event)
-
-class DCCDisconnectListener(DCCListener):
-    def notify(self, client, event):
-        if event.command == "DCC_DISCONNECT":
-            self.activate_handlers(client, event)
-
 
 
 ctcp = {
@@ -380,15 +369,8 @@ ctcp = {
     "ctcp_ping": CTCPPingListener,
     "ctcp_error": CTCPErrorListener,
     "ctcp_time": CTCPTimeListener,
-    "dcc": DCCListener,
-    "dcc_connect": DCCConnectListener,
-    "dcc_disconnect": DCCDisconnectListener
+    "dcc": DCCListener
     }
-
-
-################################################################################
-################################################################################
-################################################################################
 
 
 
@@ -400,55 +382,103 @@ class ReplyListener(EventListener):
 
 class NameReplyListener(ReplyListener):
     
+    class NameReplyEvent(Event):
+        def __init__(self):
+            self.channel = None
+            self.name_list = []
+    
     def __init__(self):
         ReplyListener.__init__(self)
-        self._name_lists = collections.defaultdict(NameReplyEvent)
+        self._name_lists = collections.defaultdict(self.NameReplyEvent)
     
     def notify(self, client, event):
         if event.command == "RPL_NAMREPLY":
+            # "( "=" / "*" / "@" ) <channel>
+            # :[ "@" / "+" ] <nick> *( " " [ "@" / "+" ] <nick> )
+            # 
+            # - "@" is used for secret channels, "*" for private
+            # channels, and "=" for others (public channels).
             channel = event.params[1]
             names = event.params[2].strip().split(" ")
-            for n in range(len(names)):
-                if names[n][0] in protocol.name_symbols:
-                    names[n] = names[n][1:]
+            # TODO: This line below is wrong. It doesn't use name symbols.
+            names = map(protocol.strip_name_symbol, names)
             self._name_lists[channel].name_list.extend(names)
         elif event.command == "RPL_ENDOFNAMES":
-            name_event = self._name_lists[event.params[1]]
-            name_event.channel = event.params[1]
+            # <channel> :End of NAMES list
+            name_event = self._name_lists[event.params[0]]
+            name_event.channel = event.params[0]
             self.activate_handlers(client, name_event)
-            del self._name_lists[event.params[1]]
+            del self._name_lists[event.params[0]]
 
 
-class WhoisListener(ReplyListener):
-    """ http://tools.ietf.org/html/rfc1459#section-4.5.2
+
+class ListReplyListener(ReplyListener):
     
-    """
+    class ListReplyEvent(Event):
+        def __init__(self, channel_list):
+            self.channel_list = channel_list
+    
     def __init__(self):
         ReplyListener.__init__(self)
-        self._whois_replies = collections.defaultdict(WhoisEvent)
+        self.channel_list = []
+    
+    def notify(self, client, event):
+        if event.command == "RPL_LIST":
+            # <channel> <# visible> :<topic>
+            channel_data = (event.params[0], event.params[1], event.params[2])
+            self.channel_list.append(channel_data)
+        elif event.command == "RPL_LISTEND":
+            # :End of LIST
+            list_event = self.ListReplyEvent(self.channel_list)
+            self.activate_handlers(client, list_event)
+            self.channel_list = []
+
+
+
+class WhoisReplyListener(ReplyListener):
+    """ http://tools.ietf.org/html/rfc1459#section-4.5.2 """
+    
+    class WhoisReplyEvent(Event):
+        def __init__(self):
+            self.nick = None
+            self.user = None
+            self.host = None
+            self.real_name = None
+            self.channels = []
+            self.server = None
+            self.is_operator = False
+            self.idle_time = 0 # seconds
+    
+    def __init__(self):
+        ReplyListener.__init__(self)
+        self._whois_replies = collections.defaultdict(self.WhoisReplyEvent)
     
     def notify(self, client, event):
         if event.command == "RPL_WHOISUSER":
-            """<nick> <user> <host> * :<real name>"""
+            # <nick> <user> <host> * :<real name>
             reply = self._whois_replies[event.params[1]]
-            reply.nick = event.params[0]
-            reply.user = event.params[1] # TODO: get rid of the n= part
-            reply.host = event.params[2]
-            reply.real_name = event.params[5]
+            reply.nick = event.params[0] 
+            reply.user = event.params[1] 
+            reply.host = event.params[2] 
+            reply.real_name = event.params[4]
         elif event.command == "RPL_WHOISCHANNELS":
-            channels = event.params[2].strip().split()
-            self._whois_replies[event.params[1]].channels.extend(channels)
-        #elif event.command == "RPL_WHOISSERVER":
-        #    self._whois_replies[event.params[1]].server = event.params[2]
-        #elif event.command == "RPL_WHOISIDLE":
-        #    self._whois_replies[event.params[1]].idle = event.params[1]
-        #elif event.command == "RPL_WHOISOPERATOR":
-        #    self._whois_replies[event.params[1]].is_operator = True
-        #elif event.command == "RPL_WHOISSPECIAL":
-        #    self._whois_replies[event.params[1]].special.append(event.params[2])
+            # <nick> :*( ( "@" / "+" ) <channel> " " )
+            channels = event.params[1].strip().split()
+            channels = map(protocol.strip_name_symbol, channels)
+            self._whois_replies[event.params[0]].channels.extend(channels)
+        elif event.command == "RPL_WHOISSERVER":
+            # <nick> <server> :<server info> 
+            self._whois_replies[event.params[0]].server = event.params[1]
+        elif event.command == "RPL_WHOISIDLE":
+            # <nick> <integer> :seconds idle
+            self._whois_replies[event.params[0]].idle_time = event.params[1]
+        elif event.command == "RPL_WHOISOPERATOR":
+            # <nick> :is an IRC operator
+            self._whois_replies[event.params[0]].is_operator = True
         elif event.command == "RPL_ENDOFWHOIS":
-            self.activate_handlers(client, self._whois_replies[event.params[1]])
-            del self._whois_replies[event.params[1]]
+            # <nick> :End of WHOIS list
+            self.activate_handlers(client, self._whois_replies[event.params[0]])
+            del self._whois_replies[event.params[0]]
 
 
 class ErrorReplyListener(ReplyListener):
@@ -460,6 +490,7 @@ class ErrorReplyListener(ReplyListener):
 replies = {
     "reply": ReplyListener,
     "name_reply": NameReplyListener,
-    "whois_reply": WhoisListener,
-    "error_reply": ErrorReplyListener,
+    "list_reply": ListReplyListener,
+    "whois_reply": WhoisReplyListener,
+    "error_reply": ErrorReplyListener
     }
