@@ -34,11 +34,8 @@ doesn't have to wait at the "Checking for ident..." phase::
 	
 	class ExampleBot(bot.SimpleBot):
 	    
-	    def on_welcome(self, event):
-	        self.join("#ircutils")
-	    
 	    def on_channel_message(self, event):
-	        print "|<--|", event.message
+	        print "<%s> %s" % (event.source, event.message)
 
 	if __name__ == "__main__":
 		

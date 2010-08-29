@@ -1,13 +1,20 @@
-Tutorial
-========
-This tutorial is designed to give you a small taste of what IRCUtils has to 
-offer you in terms of IRC solutions.
+=================
+IRCUtils Tutorial
+=================
+This tutorial is designed to give you a small taste of what ``ircutils`` has to 
+offer you in terms of IRC solutions. It assumes you already have knowledge in
+the Python programming language. If you don't, it is in your best interest
+to go through the `Python tutorial <http://docs.python.org/tutorial/>`_ first.
+Note that ``ircutils`` is strongly object-oriented, being familiar with objects 
+and object-oriented programming would work in your favor.
+
 
 
 Getting warmed up
------------------
-It'll be an IRC bot that that simply responds to any channel message with that 
-same message. We'll call it `EchoBot`. First, since we're using IRCUtils to 
+=================
+Let's start off light and build an IRC bot step-by-step.
+It'll be an IRC bot that that responds to any channel message with that 
+same message. We'll call it `EchoBot`. First, since we're using ``ircutils`` to 
 make a bot, we'll need to import the proper module::
 
     from ircutils import bot
@@ -28,25 +35,21 @@ to any events since we haven't added any event handlers. When using
 ``on_event_name(self, event)`` where the ``event_name`` is whatever event you
 wish to handle.
 
-Let's tell it to connect to ``#ircutils`` once it receives the 
-IRC welcome message by using the ``on_welcome`` event handler::
-
-    from ircutils import bot
-
-    class EchoBot(bot.SimpleBot):
-        
-        def on_welcome(self, event):
-            self.join("#ircutils")
-
 So here we have our first true introduction to events and event handlers. 
 Before we continue, let's spend a bit of time learning what comprises an
-event:
+event so we can properly use them:
+
 
 
 Introduction to events
-----------------------
+======================
+Each line sent from the IRC server represents its own event. This information
+is parsed to fill in the values for the event object. In some cases, these
+single-line events are combined together to build more complex events that span
+multiple lines of data from the server.
+
 When an event handler gets called, it gets passed two parameters; an instance
-of the client (in this most cases, this is just ``self``) and the event that 
+of the client (in most cases, this is just ``self``) and the event that 
 triggered the handler. So, what information can we get from the event? 
 Analyse the table below.
 
@@ -55,21 +58,20 @@ Analyse the table below.
     +--------------------+----------------------------------------------------+
     | Item               | Description                                        |
     +====================+====================================================+
-    | ``event.command``  | ``The IRC command. (ex:PRIVMSG)``                  |
+    | ``event.command``  | The IRC command. (ex:PRIVMSG)                      |
     +--------------------+----------------------------------------------------+
-    | ``event.source``   | ``The origin of the line (nick or server)``        |
+    | ``event.source``   | The origin of the line (nick or server)            |
     +--------------------+----------------------------------------------------+
-    | ``event.target``   | ``The target of the event.                         |
-    |                    | Either a nick, channel, or None.``                 |
+    | ``event.target``   | The target of the event.                           |
+    |                    | Either a nick, channel, or None.                   |
     +--------------------+----------------------------------------------------+
-    | ``event.params``   | ``Any additional parameters for the event.``       |
+    | ``event.params``   | Any additional parameters for the event.           |
     +--------------------+----------------------------------------------------+
-    | ``event.message``  | ``The message data associated with the event       |
-    |                    | This is only available if it is a MessageEvent``.  |
+    | ``event.message``  | The message data associated with the event         |
+    |                    | This is only available if it is a MessageEvent.    |
     +--------------------+----------------------------------------------------+
     
-    Learn more about events in the :ref:`events <ircutils-events>` 
-    documentation.
+    Learn more about events in the :mod:`ircutils.events` documentation.
 
 So now that we have an understanding of what is made up of an event, let's put
 it to good use. Since the echo bot is supposed to *echo*, let's make it do just
@@ -79,9 +81,6 @@ activated when a message (``PRIVMSG``) is sent to an IRC channel::
     from ircutils import bot
 
     class EchoBot(bot.SimpleBot):
-        
-        def on_welcome(self, event):
-            self.join("#ircutils")
 
         def on_channel_message(self, event):
             # The target of the event was the channel itself, and since we want
@@ -94,9 +93,6 @@ Let's add some code to run it::
     from ircutils import bot
 
     class EchoBot(bot.SimpleBot):
-        
-        def on_welcome(self, event):
-            self.join("#ircutils")
 
         def on_channel_message(self, event):
             self.send_message(event.target, event.message)
@@ -108,51 +104,88 @@ Let's add some code to run it::
         echo = EchoBot("echo_bot") 
         
         # Let's connect to the host
-        echo.connect("irc.freenode.com", 6667)
+        echo.connect("irc.freenode.com")
         
         # Start running the bot
         echo.start()
 
 
-Kick it up a notch
-------------------
-Let's make it send an action whenever it joins a channel, and welcome 
-anybody who joins::
+
+Joining a channel automatically
+===============================
+Let's tell it to connect to ``#ircutils`` once it receives the 
+IRC welcome message. There are two ways of doing this. First, we could set up 
+an ``on_welcome`` handler and have it explicitly join the channel, or we can 
+specify channels to join through the ``connect()`` method. It takes in an 
+argument (``join``) that is a list of channels which should be joined after 
+the welcome event is received::
 
     from ircutils import bot
 
     class EchoBot(bot.SimpleBot):
-        
-        def on_welcome(self, event):
-            self.join("#ircutils")
-        
-        def on_join(self, event):
-            if event.source != self.nickname:
-                self.send_message(event.target, "Welcome, %s!" % event.source)
-            else:
-                self.send_action(event.target, "will echo everything you say.")
-        
+
         def on_channel_message(self, event):
             self.send_message(event.target, event.message)
-            
-
+    
     if __name__ == "__main__":
         echo = EchoBot("echo_bot") 
-        echo.connect("irc.freenode.com", 6667)
+        echo.connect("irc.freenode.com", join=["#ircutils", "#some_channel"])
         echo.start()
 
+By not explicitly specifying which channels to join in the bot's primary code,
+it allows your bot to be more abstract and not forced to `have` to join the 
+channels in every use. 
 
-Formatting IRC messages
------------------------
+
+
+Joining a channel on command
+============================
+Next, let's say you want it to join a specific channel that `you` specify, via a
+private message. Then, we'd set it up using the ``on_private_message`` handler::
+
+	from ircutils import bot
+	
+	class EchoBot(bot.SimpleBot):
+	
+	    def on_channel_message(self, event):
+	        self.send_message(event.target, event.message)
+	
+	    def on_private_message(self, event):
+	        """ This handler gets called when a PRIVMSG is received that's
+	        targeted to the bot. 
+	        
+	        """
+	        # Parse the message
+	        message = event.message.split()
+	        command = message[0].upper()    # The command is the first word
+	        params = message[1:]            # Any words after that are params
+	        
+	        # Determine what to do
+	        if command == "JOIN":
+	            self.join_channel(params[0])
+	        elif command == "PART":
+	            self.part_channel(params[0])
+	
+	
+	if __name__ == "__main__":
+	    echo = EchoBot("echo_bot") 
+	    echo.connect("irc.freenode.com")
+	    echo.start()
+
+With the above code, we can tell the ``echo_bot`` to join a channel with the 
+following command in your IRC client: ``/msg echo_bot JOIN #some_channel`` . 
+You can also use similar syntax to command it to part a channel.
+
+
+
+Formatting an IRC message
+=========================
 .. note::
    If the channel you're on has ``+c`` in the mode active, no formatting will be
    available as the server automatically strips all of the tags.
 
-See the :ref:`ircutils.format documentation <ircutils-format>` for a 
-more in-depth coverage.
-
-The ``ircutils.format`` module has numerous functions for formatting outgoing 
-text, such as 
+The :mod:`ircutils.format` module has numerous 
+functions for formatting outgoing text, such as 
 :func:`bold() <ircutils.format.bold>`,
 :func:`underline() <ircutils.format.underline>`,
 :func:`reversed() <ircutils.format.reversed>`, and
@@ -162,23 +195,30 @@ text, such as
 	
 	class ExampleBot(bot.SimpleBot):
 	
-	    def on_welcome(self, event):
-	        self.join("#ircutils")
-	
 	    def on_join(self, event):
 	        if event.source == self.nickname:
 	            message = format.bold("Hello bold and green world!")
 	            message = format.color(message, format.GREEN)
 	            self.send_message(event.target, message)
 
+	if __name__ == "__main__":
+	    example_bot = ExampleBot("secure_color")
+	    example_bot.connect("irc.freenode.com", join=["#ircutils"])
+	    example_bot.start()
+
 Essentially, when using the formatting functions, apply it to the message
-before it's sent out.
+before it's sent out. 
+
+Futhermore, the :mod:`ircutils.format` module also provides a function
+for stripping formatting: :func:`ircutils.format.filter`. 
+
+
 
 Running multiple bots at once
------------------------------
-To take advantage of the asynchronous nature of IRCUtils, we have the ability
-to run multiple bots at the same time. One common mistake is that people try
-to do something like the following::
+=============================
+To take advantage of the asynchronous nature of ``ircutils``, we have the 
+ability to run multiple bots at the same time. One common mistake is that 
+people try to do something like the following::
 
     # THIS WILL NOT WORK
     bot1.start()
@@ -193,33 +233,90 @@ For example, look at this block of code::
 	
 	class HelloBot(bot.SimpleBot):
 	    
-	    def on_welcome(self, event):
-	        self.join("#ircutils")
-	    
-	    def on_message(self, event):
+	    def on_channel_message(self, event):
 	        if event.message.startswith("hey"):
 	            self.send_message(event.target, "Hello!")
 	
 	
 	class GoodbyeBot(bot.SimpleBot):
 	    
-	    def on_welcome(self, event):
-	        self.join("#ircutils")
-	    
-	    def on_message(self, event):
+	    def on_channel_message(self, event):
 	        if event.message.startswith("goodbye"):
 	            self.send_message(event.target, "Goodbye!")
 	
 	
 	if __name__ == "__main__":
-	    hello = HelloBot("hello_bot") 
-	    goodbye = GoodbyeBot("goodbye_bot")
+	    hello_bot = HelloBot("hello_bot") 
+	    goodbye_bot = GoodbyeBot("goodbye_bot")
 	    
-	    hello.connect("irc.freenode.com", 6667)
-	    goodbye.connect("irc.freenode.com", 6667)
+	    hello_bot.connect("irc.freenode.com", join=["#ircutils"])
+	    goodbye_bot.connect("irc.freenode.com", join=["#ircutils"])
 	    
+	    # Starts both in the same asynchronous loop
 	    start_all()
 
-As you can see, we set up two different bots, have them both connect, and then
-instead of calling the ``start()`` methods on them, we simply use 
-``start_all()`` which we imported.
+In the above example, we set up two different bots, have them both connect, 
+and then instead of calling the ``start()`` methods on them, we use 
+``start_all()`` which we imported. This will ensure that both are run.
+
+
+
+Connecting using SSL
+====================
+Using an SSL connection will ensure that the bot is securely connected to the
+server. Typically, this isn't necessary; however, there are servers that
+''require'' clients to be connected via SSL, and even some channels. Let's
+look at the formatting example from above and make it connect to a server
+using SSL encryption::
+
+	    bot = ExampleBot("secure_color")
+	    bot.connect("irc.freenode.com", use_ssl=True, join=["#ircutils"])
+	    bot.start()
+
+As you can see above, the flag ``use_ssl`` is used in the ``connect()`` method
+in order to enable its use. If a port number isn't specified, ``7000`` is used.
+If running multiple bots at once, it doesn't matter whether they are SSL 
+connections or regular connections. Mixing of the two is fine.
+
+
+
+Sub-classing (extending) IRC bots
+=================================
+The ability to subclass already built bots is one of the strongest features of
+having your bot be built as a class in the first place. It allows you to 
+define and combine features however you wish. For example, let's start off
+with this small and simple ``WelcomeBot``::
+
+    # File: welcome.py
+    from ircutils import bot, format
+    
+    class WelcomeBot(bot.SimpleBot):
+    
+        def on_join(self, event):
+            if event.source != self.nickname:
+                message = format.bold("Welcome, {0}!".format(event.source))
+                self.send_message(event.target, message)
+
+Now, let's say we want to add on to this bot, but we really don't want to mess
+up what we have here. Instead, let's just extend it! Save the code above into
+a file called ``welcome.py`` and then continue on with this::
+
+    import welcome
+    
+    class WellRoundedBot(welcome.WelcomeBot):
+        
+        def on_part(self, event):
+            message = "waves goodbye to {0}.".format(event.source)
+            self.send_action(event.target, message)
+
+
+By extending off of ``welcome.WelcomeBot``, we inherit the ``on_join`` handler.
+
+
+
+Need more help?
+===============
+So you've gone through the tutorial, and something's still not clear to you? 
+No problem! Just 
+`file a request </projects/ircutils/newticket?component=Documentation>`_ 
+for more documentation or contact a developer directly via email.

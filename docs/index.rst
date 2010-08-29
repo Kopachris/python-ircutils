@@ -20,6 +20,7 @@ Getting started
    tutorial
    bot
    format
+   events
    client
    connection
    protocol
