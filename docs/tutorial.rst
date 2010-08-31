@@ -109,7 +109,9 @@ Let's add some code to run it::
         # Start running the bot
         echo.start()
 
-
+.. note::
+   To see a full list of built-in event listeners, look at the 
+   :ref:`list-of-event-names`.
 
 Joining a channel automatically
 ===============================
@@ -117,8 +119,9 @@ Let's tell it to connect to ``#ircutils`` once it receives the
 IRC welcome message. There are two ways of doing this. First, we could set up 
 an ``on_welcome`` handler and have it explicitly join the channel, or we can 
 specify channels to join through the ``connect()`` method. It takes in an 
-argument (``join``) that is a list of channels which should be joined after 
-the welcome event is received::
+argument (``channel``) that specifies which channel to join once the client
+connects. Optionally, ``channel`` can be a list of channels.
+::
 
     from ircutils import bot
 
@@ -129,7 +132,7 @@ the welcome event is received::
     
     if __name__ == "__main__":
         echo = EchoBot("echo_bot") 
-        echo.connect("irc.freenode.com", join=["#ircutils", "#some_channel"])
+        echo.connect("irc.freenode.com", channel=["#ircutils", "#some_channel"])
         echo.start()
 
 By not explicitly specifying which channels to join in the bot's primary code,
@@ -203,14 +206,12 @@ functions for formatting outgoing text, such as
 
 	if __name__ == "__main__":
 	    example_bot = ExampleBot("secure_color")
-	    example_bot.connect("irc.freenode.com", join=["#ircutils"])
+	    example_bot.connect("irc.freenode.com", channel="#ircutils")
 	    example_bot.start()
 
 Essentially, when using the formatting functions, apply it to the message
-before it's sent out. 
-
-Futhermore, the :mod:`ircutils.format` module also provides a function
-for stripping formatting: :func:`ircutils.format.filter`. 
+before it's sent out. Futhermore, the :mod:`ircutils.format` module also 
+provides a function for stripping formatting: :func:`ircutils.format.filter`. 
 
 
 
@@ -249,8 +250,8 @@ For example, look at this block of code::
 	    hello_bot = HelloBot("hello_bot") 
 	    goodbye_bot = GoodbyeBot("goodbye_bot")
 	    
-	    hello_bot.connect("irc.freenode.com", join=["#ircutils"])
-	    goodbye_bot.connect("irc.freenode.com", join=["#ircutils"])
+	    hello_bot.connect("irc.freenode.com", channel="#ircutils")
+	    goodbye_bot.connect("irc.freenode.com", channel="#ircutils")
 	    
 	    # Starts both in the same asynchronous loop
 	    start_all()
@@ -270,7 +271,7 @@ look at the formatting example from above and make it connect to a server
 using SSL encryption::
 
 	    bot = ExampleBot("secure_color")
-	    bot.connect("irc.freenode.com", use_ssl=True, join=["#ircutils"])
+	    bot.connect("irc.freenode.com", use_ssl=True, channel="#ircutils")
 	    bot.start()
 
 As you can see above, the flag ``use_ssl`` is used in the ``connect()`` method

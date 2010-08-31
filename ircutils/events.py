@@ -128,6 +128,9 @@ class EventListener(object):
                 # Do stuff with the client and event here
                 # Example: 
                 client.send_message(event.target, "Hi!")
+        
+        If :class:`ircutils.bot.SimpleBot` is being used, you do not need to
+        use this method as handlers are automatically added.
                 
         """
         bisect.insort(self.handlers, (priority, handler))
@@ -271,7 +274,7 @@ standard = {
 
 class MessageListener(EventListener):
     def notify(self, client, event):
-        if event.command in ["PRIVMSG", "NOTICE"]:
+        if event.command == "PRIVMSG":
             self.activate_handlers(client, event)
 
 class PrivateMessageListener(MessageListener):
@@ -309,6 +312,7 @@ messages = {
     "message": MessageListener,
     "channel_message": ChannelMessageListener,
     "private_message": PrivateMessageListener,
+    "notice": NoticeListener,
     "channel_notice": ChannelNoticeListener,
     "private_notice": PrivateNoticeListener
     }

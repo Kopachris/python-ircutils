@@ -7,14 +7,13 @@ try:
 except ImportError:
     import dummy_threading as threading
 
-
 import client
 import events
 
 
 def threaded(func):
     """ Decorator that causes a callable to become threaded. This is useful to 
-    place on handlers in the event that they are highly CPU-bound.
+    place on event handlers if they are highly CPU-bound.
     """
     def wrap(*args, **kwargs):
         thread = threading.Thread(target=func, args=args, kwargs=kwargs)
@@ -30,9 +29,6 @@ class SimpleBot(client.SimpleClient):
     to check that documentation to see more of what is available.
     
     """
-    def __init__(self, nick):
-        client.SimpleClient.__init__(self, nick)
-        self._autobind_handlers()
     
     def _autobind_handlers(self):
         """ Looks for "on_<event-name>" methods on the object and automatically
@@ -44,6 +40,10 @@ class SimpleBot(client.SimpleClient):
             if hasattr(self, name):
                 handler = getattr(self, name).__func__
                 self.events[listener_name].add_handler(handler)
+    
+    def start(self):
+        self._autobind_handlers()
+        client.SimpleClient.start(self)
 
 
 class _TestBot(SimpleBot):

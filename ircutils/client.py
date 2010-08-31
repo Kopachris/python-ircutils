@@ -1,3 +1,8 @@
+""" This module provides a direct client interface for managing an IRC 
+connection. If you are trying to build a bot, :class:`ircutils.bot.SimpleBot` 
+inherits from :class:`SimpleClient` so it has the methods listed below.
+
+"""
 import collections
 
 import connection
@@ -20,7 +25,7 @@ class SimpleClient(object):
     
     """
     software = "http://dev.guardedcode.com/projects/ircutils/"
-    version = (0,1,2)
+    version = (0,1,3)
     
     def __init__(self, nick, mode="+B", auto_handle=True):
         self.nickname = nick
@@ -35,6 +40,13 @@ class SimpleClient(object):
         if auto_handle:
             self._add_built_in_handlers()
 
+    
+    def __getitem__(self, name):
+        return self.events[name]
+    
+    def __setitem__(self, name, value):
+        self.events[name] = value
+    
     
     def _register_default_listeners(self):
         """ Registers the default listeners to the names listed in events. """
@@ -104,7 +116,8 @@ class SimpleClient(object):
             self.events.dispatch(self, event)
     
     
-    def connect(self, host, port=None, join=None, use_ssl=False, password=None):
+    def connect(self, host, port=None, channel=None, use_ssl=False, 
+                password=None):
         """ Connect to an IRC server. """
         self.conn = connection.Connection()
         self.conn.handle_line = self._dispatch_event
@@ -113,10 +126,16 @@ class SimpleClient(object):
                                   trailing=self.real_name)
         self.conn.execute("NICK", self.nickname)
         
-        if join is not None:
+        if channel is not None:
             # Builds a handler on-the-fly for joining init channels
+            
+            if isinstance(channel, basestring):
+                channels = [channel]
+            else:
+                channels = channel
+            
             def _auto_joiner(client, event):
-                for channel in join:
+                for channel in channels:
                     client.join_channel(channel)
             
             self.events["welcome"].add_handler(_auto_joiner)
@@ -130,7 +149,7 @@ class SimpleClient(object):
         
             client.register_listener("event_name", MyListener())
         """
-        self.dispatcher.register_listener(event_name, listener)
+        self.events.register_listener(event_name, listener)
     
     
     def identify(self, ns_password):
@@ -226,12 +245,12 @@ class SimpleClient(object):
         self.conn.execute("NICK", nickname)
     
     
-    def quit(self, message=None):
+    def disconnect(self, message=None):
         """ Disconnects from the IRC server.
         If `message` is set, it is provided as a departing message.
         Example::
         
-            client.quit("Goodbye cruel world!")
+            client.disconnect("Goodbye cruel world!")
         """
         self.conn.execute("QUIT", trailing=message)
         self.channels = []
@@ -245,6 +264,7 @@ class SimpleClient(object):
         
         """
         self.conn.start()
+    
     
     def execute(self, command, *args, **kwargs):
         """ Execute an IRC command on the server.  
@@ -261,6 +281,7 @@ class SimpleClient(object):
     part = part_channel
     notice = send_notice
     action = send_action
+    quit = disconnect
 
 
 
@@ -302,7 +323,7 @@ def _update_client_info(client, event):
 
 def _set_channel_names(client, name_event):
     return # TODO: Not yet functional. I broke it at some point.
-    channel_name = name_event.channel
+    channel_name = name_event.channel_name
     client.channels[channel_name].user_list = name_event.name_list
 
 def _remove_channel_user(client, event):
