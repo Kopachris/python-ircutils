@@ -1,7 +1,8 @@
-""" This module contains two distinct ident server implemtations: 
-``IdentServer`` and ``FakeIdentServer``. IdentServer is a fully functional 
-(RFC-1413 compatible) ident server for Unix machines. FakeIdentServer can be 
-used instead in order to specify your own output data. Typically, this is ideal.
+""" This module contains a quick ident server implentation: 
+``IdentServer``. IdentServer is a functional ident server that returns fake data
+and can be used with IRC bots or clients. This is useful for two reasons; it
+speeds up connection time, and some servers require an ident response for 
+security purposes.
 
 """
 import asyncore, asynchat
@@ -38,53 +39,49 @@ class _IdentChannel(asynchat.async_chat):
     to the IdentServer. It isn't designed to be used directly.
     """
     
-    def __init__(self, server, sock, addr):
+    def __init__(self, userid, sock, addr):
         """ Set up the object by specifying the terminator and initializing the
         input buffer and using the socket passed from the dispatcher. The 
         terminator for the ident protocol is CR+LF.
         """
         asynchat.async_chat.__init__(self, sock)
         self.set_terminator("\r\n")
-        self.server = server
+        self.userid = userid
 
     def found_terminator(self):
         """ When this is activated, it means that the terminator (\r\n) has been
         read. When that happens, we get the input data, clear the buffer,
         and then handle the data collected.
         """
-        response = self.handle_request("".join(self.incoming))
+        request = "".join(self.incoming)
+        sysos = get_operating_system()
+        
+        response = (request, "USERID", sysos, self.userid)
+        
         self.incoming = []
         self.push(":".join(response))
         self.close_when_done()
-    
-    def handle_request(self, request):
-        if self.server.response != USERID:
-            return request, ERROR, self.server.response
-        
-        sysos = get_operating_system()
-        userid = generate_fake_userid()
-        
-        return request, "USERID", sysos, userid
+
 
 
 
 class IdentServer(asyncore.dispatcher):
-    """ A simple and configurable ident server. """
+    """ A quick and easy ident server. In order to run the ident server inline
+    with an IRC bot or client, be sure to use ``start_all()`` instead of 
+    calling the ``start()`` method.
     
-    def __init__(self, port=113):
-        """ Create the ident server by creating a typical socket and then 
-        binding it to the port specified. 
-       
-        """
+    """
+    def __init__(self, port=113, userid=None):
         asyncore.dispatcher.__init__(self)
         self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
         self.bind(("", port))
         self.listen(5)
-
+        self.userid = userid or generate_fake_userid()
+        
     def handle_accept(self):
         """ Dispatch a request onto an _IdentChannel instance. """
-        _IdentChannel(self, *self.accept())
-    
+        _IdentChannel(self.userid, *self.accept())
+        
     def start(self):
         """ Begin serving ident requests on the port specified. """
         asyncore.loop(map=self._map)

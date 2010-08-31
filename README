@@ -12,7 +12,7 @@ and simple support for writing IRC bots. Its features include:
     * Automatic channel tracking
     * CTCP compatibility
     * Advanced message handling
-    * Configurable  ident server
+    * Basic ident server
 
 :Home page:      http://dev.guardedcode.com/projects/ircutils/
 :Documentation:  http://dev.guardedcode.com/docs/ircutils/
