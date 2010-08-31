@@ -327,19 +327,17 @@ def _update_client_info(client, event):
 
 
 def _set_channel_names(client, name_event):
-    return # TODO: Not yet functional. I broke it at some point.
-    channel_name = name_event.channel_name
+    channel_name = name_event.channel
+    client.channels[channel_name].name = channel_name
     client.channels[channel_name].user_list = name_event.name_list
 
 def _remove_channel_user(client, event):
-    return # TODO: Not yet functional. I broke it at some point.
     channel = event.target
-    if event.origin == client.nickname:
+    if event.source == client.nickname:
         del client.channels[channel]
     elif event.source in client.channels[channel].user_list:
         client.channels[channel].user_list.remove(event.source)
 
 def _add_channel_user(client, event):
-    return # TODO: Not yet functional. I broke it at some point.
     channel = event.target
     client.channels[channel].user_list.append(event.source)

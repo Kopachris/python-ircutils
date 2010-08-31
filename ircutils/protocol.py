@@ -168,10 +168,9 @@ class Channel(object):
     simple as: ``self.channels["#example"].user_list``
     
     """
-    def __init__(self, name):
-        self.name = name
+    def __init__(self):
+        self.name = None
         self.user_list = []
-        self.topic = ""
 
     def __str__(self):
         return "<Channel %s '%s users'>" % (self.name, len(self.user_list))
