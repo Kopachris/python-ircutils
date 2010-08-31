@@ -50,7 +50,7 @@ class EventDispatcher(object):
 
 
 # ------------------------------------------------------------------------------
-# > BEGIN EVENT OBJECTS
+# > BEGIN EVENT OBJECTS 
 # ------------------------------------------------------------------------------
 
 
@@ -85,7 +85,6 @@ class MessageEvent(StandardEvent):
            from ircutils import bot
            
            class PrinterBot(bot.SimpleBot):
-               
                def on_message(self, event):
                    print "<{0}> {1}".format(event.source, event.message)
     

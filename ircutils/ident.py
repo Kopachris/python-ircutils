@@ -7,6 +7,8 @@ security purposes.
 """
 import asyncore, asynchat
 import os
+import socket
+import uuid
 
 
 def get_operating_system():
@@ -47,6 +49,7 @@ class _IdentChannel(asynchat.async_chat):
         asynchat.async_chat.__init__(self, sock)
         self.set_terminator("\r\n")
         self.userid = userid
+        self.collect_incoming_data = self._collect_incoming_data
 
     def found_terminator(self):
         """ When this is activated, it means that the terminator (\r\n) has been

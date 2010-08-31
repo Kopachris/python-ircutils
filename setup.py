@@ -14,7 +14,7 @@ import os
 readme_file = os.path.join(os.path.dirname(__file__), 'README')
 
 setup(name='ircutils',
-      version='0.1.2',
+      version='0.1.3',
       description='IRC framework and utilities. Great for bot creation.',
       long_description=open(readme_file).read(),
       author='Evan Fosmark',
@@ -24,7 +24,7 @@ setup(name='ircutils',
       platforms="Any",
       packages=['ircutils'],
       classifiers=[
-         "Development Status :: 4 - Beta",
+         "Development Status :: 3 - Alpha",
          "Intended Audience :: Developers",
          "License :: OSI Approved :: MIT License",
          "Operating System :: OS Independent",

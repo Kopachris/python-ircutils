@@ -26,6 +26,7 @@ class SimpleClient(object):
     """
     software = "http://dev.guardedcode.com/projects/ircutils/"
     version = (0,1,3)
+    custom_listeners = {}
     
     def __init__(self, nick, mode="+B", auto_handle=True):
         self.nickname = nick
@@ -45,7 +46,7 @@ class SimpleClient(object):
         return self.events[name]
     
     def __setitem__(self, name, value):
-        self.events[name] = value
+        self.register_listener(name, value)
     
     
     def _register_default_listeners(self):
@@ -66,6 +67,10 @@ class SimpleClient(object):
         # RPL_ events
         for name in events.replies:
             self.events.register_listener(name, events.replies[name]())
+        
+        # Custom listeners
+        for name in self.custom_listeners:
+            self.events.register_listener(name, self.custom_listeners[name]())
     
     
     def _add_built_in_handlers(self):
@@ -157,7 +162,7 @@ class SimpleClient(object):
         This assumes that NickServ is present on the server.
         
         """
-        self.send_message("NickServ", "IDENTIFY %s" % ns_password)
+        self.send_message("NickServ", "IDENTIFY {0}".format(ns_password))
     
     
     def join_channel(self, channel, key=None):
