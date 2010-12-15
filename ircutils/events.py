@@ -66,7 +66,7 @@ class StandardEvent(Event):
         self.prefix = prefix
         self.source, self.user, self.host = protocol.parse_prefix(prefix)
         if len(params) > 0:
-            if params[0] not in protocol.commands_with_no_target:
+            if command not in protocol.commands_with_no_target:
                 self.target = params[0]
                 self.params = params[1:]
             else:
