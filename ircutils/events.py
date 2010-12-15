@@ -63,6 +63,7 @@ class StandardEvent(Event):
     """ Represents a standard event. """
     def __init__(self, prefix, command, params):
         self.command = command
+        self.prefix = prefix
         self.source, self.user, self.host = protocol.parse_prefix(prefix)
         if len(params) > 0:
             if params[0] not in protocol.commands_with_no_target:
