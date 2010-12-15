@@ -311,7 +311,7 @@ def _update_client_info(client, event):
         if not protocol.is_channel(event.params[0]):
             client.nickname = client._prev_nickname
     elif command == "NICK" and event.source == client.nickname:
-        client.nickname = event.trailing
+        client.nickname = event.target
     if command in ["ERR_INVITEONLYCHAN", "ERR_CHANNELISFULL", 
                    "ERR_BANNEDFROMCHAN", "ERR_BADCHANNELKEY", 
                    "ERR_TOOMANYCHANNELS"]:
