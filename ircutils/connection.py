@@ -90,7 +90,8 @@ class Connection(asynchat.async_chat):
     
     
     def handle_connect(self):
-        """ Initializes SSL support after the connection has been made. """
+        """ Initializes SSL support after the connection has been made. This is used
+        internally. Do not call this yourself. """
         if self.use_ssl:
             self.ssl = ssl.wrap_socket(self.socket)
             self.set_socket(self.ssl)

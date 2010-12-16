@@ -144,7 +144,7 @@ class EventListener(object):
     
     def remove_handler(self, handler):
         """ This removes all handlers that are equal to the ``handler`` which
-        are bound to the event listener. This isn't too inefficient since
+        are bound to the event listener. This isn't too efficient since
         it is ``O(n^2)``.
         """
         for p, l in self.handlers:
