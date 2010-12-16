@@ -70,18 +70,6 @@ class Connection(asynchat.async_chat):
         self.handle_line(prefix, command, params)
     
     
-    def handle_error(self):
-        raise # Causes the error to propagate. I hate the compact traceback
-              # that asyncore uses.
-    
-    
-    def handle_connect(self):
-        """ Initializes SSL support after the connection has been made. """
-        if self.use_ssl:
-            self.ssl = ssl.wrap_socket(self.socket)
-            self.set_socket(self.ssl)
-    
-    
     def execute(self, command, *params, **kwargs):
         """ This places an IRC command on the output queue. If you wish to use
         a trailing perameter, set it as a keyword argument, like so:
@@ -94,6 +82,18 @@ class Connection(asynchat.async_chat):
             params = list(params)
             params.append(":%s" % kwargs["trailing"])
         self.push("%s %s\r\n" % (command.upper(), " ".join(params)))
+    
+    
+    def handle_error(self):
+        raise # Causes the error to propagate. I hate the compact traceback
+              # that asyncore uses.
+    
+    
+    def handle_connect(self):
+        """ Initializes SSL support after the connection has been made. """
+        if self.use_ssl:
+            self.ssl = ssl.wrap_socket(self.socket)
+            self.set_socket(self.ssl)
     
     
     def handle_line(self, prefix, command, params):

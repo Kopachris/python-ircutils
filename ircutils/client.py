@@ -52,6 +52,10 @@ class SimpleClient(object):
     def _register_default_listeners(self):
         """ Registers the default listeners to the names listed in events. """
         
+        # Connection events
+        for name in events.connection:
+            self.events.register_listener(name, events.connection[name]())
+        
         # Standard events
         for name in events.standard:
             self.events.register_listener(name, events.standard[name]())
@@ -130,6 +134,8 @@ class SimpleClient(object):
         self.conn.execute("USER", self.user, self._mode, "*", 
                                   trailing=self.real_name)
         self.conn.execute("NICK", self.nickname)
+        self.conn.handle_connect = self._handle_connect
+        self.conn.handle_close = self._handle_disconnect
         
         if channel is not None:
             # Builds a handler on-the-fly for joining init channels
@@ -144,6 +150,20 @@ class SimpleClient(object):
                     client.join_channel(channel)
             
             self.events["welcome"].add_handler(_auto_joiner)
+    
+    
+    def is_connected(self):
+        return self.conn.connected
+    
+    def _handle_connect(self):
+        connection.Connection.handle_connect(self.conn)
+        event = events.ConnectionEvent("CONN_CONNECT")
+        self.events.dispatch(self, event)
+    
+    def _handle_disconnect(self):
+        connection.Connection.handle_close(self.conn)
+        event = events.ConnectionEvent("CONN_DISCONNECT")
+        self.events.dispatch(self, event)
     
     
     def register_listener(self, event_name, listener):

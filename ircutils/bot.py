@@ -2,23 +2,8 @@
 level of abstraction of the IRC protocol available in ``ircutils``.
 
 """
-try:
-    import threading
-except ImportError:
-    import dummy_threading as threading
-
 import client
 import events
-
-
-def threaded(func):
-    """ Decorator that causes a callable to become threaded. This is useful to 
-    place on event handlers if they are highly CPU-bound.
-    """
-    def wrap(*args, **kwargs):
-        thread = threading.Thread(target=func, args=args, kwargs=kwargs)
-        thread.start()
-    return wrap 
 
 
 class SimpleBot(client.SimpleClient):

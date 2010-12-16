@@ -9,7 +9,6 @@ is parsed to fill in the values for the event object.
 """
 import bisect
 import collections
-import re
 import traceback
 
 import protocol
@@ -57,6 +56,14 @@ class EventDispatcher(object):
 
 class Event(object):
     pass
+
+
+class ConnectionEvent(Event):
+    def __init__(self, command):
+        self.command = command
+        self.source = None
+        self.target = None
+        self.params = []
 
 
 class StandardEvent(Event):
@@ -204,6 +211,24 @@ def create_listener(command=None, target=None, source=None):
 # ------------------------------------------------------------------------------
 # > BEGIN BUILT-IN EVENT LISTENERS
 # ------------------------------------------------------------------------------
+
+
+class ConnectListener(EventListener):
+    def notify(self, client, event):
+        if event.command == "CONN_CONNECT":
+            self.activate_handlers(client, event)
+
+class DisconnectListener(EventListener):
+    def notify(self, client, event):
+        if event.command == "CONN_DISCONNECT":
+            self.activate_handlers(client, event)
+
+
+connection = {
+    "connect": ConnectListener,
+    "disconnect": DisconnectListener
+}
+
 
 
 class AnyListener(EventListener):
