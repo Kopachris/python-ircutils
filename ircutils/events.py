@@ -59,6 +59,9 @@ class Event(object):
 
 
 class ConnectionEvent(Event):
+    """ Handles events for connecting and disconnecting. Currently, the only useful data in
+    the event object is the command. It will either be CONN_CONNECT or CONN_DISCONNECT.
+    """
     def __init__(self, command):
         self.command = command
         self.source = None
