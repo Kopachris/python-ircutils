@@ -529,16 +529,18 @@ class WhoReplyListener(ReplyListener):
     
     def notify(self, client, event):
         if event.command == "RPL_WHOREPLY":
+            channel = event.params[0].lower()
             user = protocol.User()
             user.user = event.params[1]
             user.host = event.params[2]
             user.server = event.params[3]
             user.nick = event.params[4]
             user.real_name = event.params[6].split()[1]
-            self._who_replies[event.params[0].lower()].user_list.append(user)
+            self._who_replies[channel].user_list.append(user)
         elif event.command == "RPL_ENDOFWHO":
-            self._who_replies[event.params[0]].channel_name = event.params[0]
-            self.activate_handlers(client, self._who_replies[event.params[0].lower()])
+            channel = event.params[0].lower()
+            self._who_replies[channel].channel_name = channel
+            self.activate_handlers(client, self._who_replies[channel])
 
 
 
