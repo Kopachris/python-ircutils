@@ -3,7 +3,6 @@ is responsible for parsing CTCP data and making data ready to be sent
 via CTCP.
 
 """
-import re
 
 X_DELIM = "\x01"
 M_QUOTE = "\x10"

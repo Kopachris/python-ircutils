@@ -176,6 +176,17 @@ class Channel(object):
         return "<Channel %s '%s users'>" % (self.name, len(self.user_list))
 
 
+class User(object):
+    """ Represents an individual user. """
+    def __init__(self):
+        self.user = None
+        self.host = None
+        self.nick = None
+        self.flags = None
+        self.server = None
+        self.real_name = None
+
+
 if __name__ == "__main__":
     import doctest
     doctest.testmod()

@@ -412,6 +412,7 @@ class ReplyListener(EventListener):
             self.activate_handlers(client, event)
 
 
+
 class NameReplyListener(ReplyListener):
     
     class NameReplyEvent(Event):
@@ -513,6 +514,35 @@ class WhoisReplyListener(ReplyListener):
             del self._whois_replies[event.params[0]]
 
 
+
+class WhoReplyListener(ReplyListener):
+    """ http://tools.ietf.org/html/rfc1459#section-4.5.2 """
+    
+    class WhoReplyEvent(Event):
+        def __init__(self):
+            self.channel_name = None
+            self.user_list = []
+    
+    def __init__(self):
+        ReplyListener.__init__(self)
+        self._who_replies = collections.defaultdict(self.WhoReplyEvent)
+    
+    def notify(self, client, event):
+        if event.command == "RPL_WHOREPLY":
+            user = protocol.User()
+            user.user = event.params[1]
+            user.host = event.params[2]
+            user.server = event.params[3]
+            user.nick = event.params[4]
+            user.real_name = event.params[6].split()[1]
+            self._who_replies[event.params[0].lower()].user_list.append(user)
+        elif event.command == "RPL_ENDOFWHO":
+            self._who_replies[event.params[0]].channel_name = event.params[0]
+            self.activate_handlers(client, self._who_replies[event.params[0].lower()])
+
+
+
+
 class ErrorReplyListener(ReplyListener):
     def notify(self, client, event):
         if event.command.startswith("ERR_"):
@@ -524,5 +554,6 @@ replies = {
     "name_reply": NameReplyListener,
     "list_reply": ListReplyListener,
     "whois_reply": WhoisReplyListener,
+    "who_reply": WhoReplyListener,
     "error_reply": ErrorReplyListener
     }
