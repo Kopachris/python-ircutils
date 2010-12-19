@@ -431,17 +431,18 @@ class NameReplyListener(ReplyListener):
             # 
             # - "@" is used for secret channels, "*" for private
             # channels, and "=" for others (public channels).
-            channel = event.params[1]
+            channel = event.params[1].lower()
             names = event.params[2].strip().split(" ")
             # TODO: This line below is wrong. It doesn't use name symbols.
             names = map(protocol.strip_name_symbol, names)
             self._name_lists[channel].name_list.extend(names)
         elif event.command == "RPL_ENDOFNAMES":
             # <channel> :End of NAMES list
-            name_event = self._name_lists[event.params[0]]
-            name_event.channel = event.params[0]
+            channel_name = event.params[0]
+            name_event = self._name_lists[channel_name]
+            name_event.channel = channel_name
             self.activate_handlers(client, name_event)
-            del self._name_lists[event.params[0]]
+            del self._name_lists[channel_name]
 
 
 
@@ -458,7 +459,7 @@ class ListReplyListener(ReplyListener):
     def notify(self, client, event):
         if event.command == "RPL_LIST":
             # <channel> <# visible> :<topic>
-            channel_data = (event.params[0], event.params[1], event.params[2])
+            channel_data = (event.params[0].lower(), event.params[1], event.params[2])
             self.channel_list.append(channel_data)
         elif event.command == "RPL_LISTEND":
             # :End of LIST

@@ -332,32 +332,31 @@ def _update_client_info(client, event):
             client.nickname = client._prev_nickname
     elif command == "NICK" and event.source == client.nickname:
         client.nickname = event.target
-    if command in ["ERR_INVITEONLYCHAN", "ERR_CHANNELISFULL", 
-                   "ERR_BANNEDFROMCHAN", "ERR_BADCHANNELKEY", 
-                   "ERR_TOOMANYCHANNELS"]:
-        if params[0] in client.channels:
-            del client.channels[params[0]]
-    elif command == "ERR_NOSUCHCHANNEL" and params[0] in client.channels:
-        del client.channels[params[0]]
-    elif command == "ERR_BADCHANMASK" and params[0] in client.channels:
-        del client.channels[params[0]]
+    
+    if command in ["ERR_INVITEONLYCHAN", "ERR_CHANNELISFULL",  "ERR_BANNEDFROMCHAN", 
+                   "ERR_BADCHANNELKEY", "ERR_TOOMANYCHANNELS", "ERR_NOSUCHCHANNEL"
+                   "ERR_BADCHANMASK"]:
+        channel_name = params[0].lower()
+        if channel_name in client.channels:
+            del client.channels[channel_name]
     elif command == "ERR_UNAVAILRESOURCE":
-        if protocol.is_channel(params[0]) and params[0] in client.channels:
-            del client.channels[params[0]]
+        channel_name = params[0].lower()
+        if protocol.is_channel(channel_name) and channel_name in client.channels:
+            del client.channels[channel_name]
 
 
 def _set_channel_names(client, name_event):
-    channel_name = name_event.channel
+    channel_name = name_event.channel.lower()
     client.channels[channel_name].name = channel_name
     client.channels[channel_name].user_list = name_event.name_list
 
 def _remove_channel_user(client, event):
-    channel = event.target
+    channel = event.target.lower()
     if event.source == client.nickname:
         del client.channels[channel]
     elif event.source in client.channels[channel].user_list:
         client.channels[channel].user_list.remove(event.source)
 
 def _add_channel_user(client, event):
-    channel = event.target
+    channel = event.target.lower()
     client.channels[channel].user_list.append(event.source)
