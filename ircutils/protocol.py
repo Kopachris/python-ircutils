@@ -110,6 +110,16 @@ def parse_prefix(prefix):
     return nick, user, host
 
 
+def create_prefix(nick, user, host):
+    """ Builds a prefix based on the nick, user, and host provided. This is essentially the
+    opposite to parse_prefix().
+    
+        >>> create_prefix("Jack", "~jack", "000-000-000-000.example.com")
+        'Jack!~jack@000-000-000-000.example.com'
+    """
+    return "{0}!{1}@{2}".format(nick, user, host)
+
+
 _special_chars = ('-', '[', ']', '\\', '`', '^', '{', '}', '_')
 def is_nick(nick):
     """ Checks to see if a nickname `nick` is valid.
