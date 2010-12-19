@@ -36,8 +36,8 @@ class SimpleBot(client.SimpleClient):
         """
         self.events.register_listener(event_name, listener)
         handler_name = "on_{0}".format(event_name)
-        if hasattr(self, event_name):
-            handler = getattr(self, event_name).__func__
+        if hasattr(self, handler_name):
+            handler = getattr(self, handler_name).__func__
             self.events[handler_name].add_handler(handler)
 
 

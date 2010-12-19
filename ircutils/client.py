@@ -74,7 +74,7 @@ class SimpleClient(object):
         
         # Custom listeners
         for name in self.custom_listeners:
-            self.events.register_listener(name, self.custom_listeners[name]())
+            self.events.register_listener(name, self.custom_listeners[name])
     
     
     def _add_built_in_handlers(self):
