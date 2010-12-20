@@ -80,7 +80,8 @@ class Connection(asynchat.async_chat):
         params = filter(lambda x:x is not None, params)
         if "trailing" in kwargs:
             params = list(params)
-            params.append(":%s" % kwargs["trailing"])
+            if kwargs["trailing"] is not None:
+                params.append(":%s" % kwargs["trailing"])
         self.push("%s %s\r\n" % (command.upper(), " ".join(params)))
     
     
