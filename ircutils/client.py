@@ -87,8 +87,8 @@ class SimpleClient(object):
         self.events["any"].add_handler(_update_client_info)
         self.events["name_reply"].add_handler(_set_channel_names)
         self.events["ctcp_version"].add_handler(_reply_to_ctcp_version)
-        self.events["part"].add_handler(_remove_channel_user)
-        self.events["quit"].add_handler(_remove_channel_user)
+        self.events["part"].add_handler(_remove_channel_user_on_part)
+        self.events["quit"].add_handler(_remove_channel_user_on_quit)
         self.events["join"].add_handler(_add_channel_user)
     
     
@@ -350,12 +350,21 @@ def _set_channel_names(client, name_event):
     client.channels[channel_name].name = channel_name
     client.channels[channel_name].user_list = name_event.name_list
 
-def _remove_channel_user(client, event):
+
+def _remove_channel_user_on_part(client, event):
     channel = event.target.lower()
     if event.source == client.nickname:
         del client.channels[channel]
     elif event.source in client.channels[channel].user_list:
         client.channels[channel].user_list.remove(event.source)
+
+
+def _remove_channel_user_on_quit(client, event):
+    # TODO: This solution is slow. There might be a better one.
+    for channel in client.channels:
+        if event.source in client.channels[channel].user_list:
+            client.channels[channel].user_list.remove(event.source)
+
 
 def _add_channel_user(client, event):
     channel = event.target.lower()
