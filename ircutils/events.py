@@ -34,7 +34,7 @@ class EventDispatcher(object):
         return self._listeners[name]
     
     def __iter__(self):
-        return iter(list(self._listeners.keys()))
+        return iter(self._listeners)
     
     def dispatch(self, client, event):
         """ Notifies all of the listeners that an event is available.
@@ -42,7 +42,7 @@ class EventDispatcher(object):
         the listener is looking for will then activate its event handlers.
         
         """
-        for name, listener in list(self._listeners.items()):
+        for name, listener in self._listeners.items():
             if listener.handlers != []:
                 listener.notify(client, event)
 
@@ -164,10 +164,14 @@ class EventListener(object):
         handler. It's a good idea to always make sure to send in the client
         and the event.
         """
+        try:
+            e = StandardError
+        except:
+            e = Exception
         for p, handler in self.handlers:
             try:
                 handler(*args)
-            except Exception as ex:
+            except e as ex:
                 traceback.print_exc(ex)
                 self.handlers.remove((p, handler))
     

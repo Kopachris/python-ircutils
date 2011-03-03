@@ -167,7 +167,10 @@ def ip_to_ascii(ip_address):
 
 def ascii_to_ip(ascii_ip_value):
     """ Converts the integer value to a quad IP format. """
-    ascii_ip_value = int(ascii_ip_value)
+    try:
+        ascii_ip_value = long(ascii_ip_value)
+    except:
+        ascii_ip_value = int(ascii_ip_value) # python3k handler
     return str(socket.inet_ntoa(struct.pack('!L', ascii_ip_value)))
 
 
