@@ -60,7 +60,7 @@ class Connection(asynchat.async_chat):
     
     def found_terminator(self):
         """ Activated when ``\\r\\n`` is encountered. Do not call directly. """
-        data = "".join([i.decode("utf_8") for i in self.incoming])
+        data = "".join([i.decode("utf_8", "replace") for i in self.incoming])
         self.incoming = []
         prefix, command, params = protocol.parse_line(data)
         if command == "PING" and self.ping_auto_respond:
@@ -82,7 +82,8 @@ class Connection(asynchat.async_chat):
             params = list(params)
             if kwargs["trailing"] is not None:
                 params.append(":%s" % kwargs["trailing"])
-        self.push((u"%s %s\r\n" % (command.upper(), " ".join(params))).encode())
+        self.push(("%s %s\r\n" % (command.upper(), " ".join(params)))
+            .encode("utf_8", "replace"))
     
     
     def handle_error(self):

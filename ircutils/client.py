@@ -113,7 +113,7 @@ class SimpleClient(object):
                 pending_events.append(event)
             for command, params in ctcp_requests:
                 ctcp_event = events.CTCPEvent()
-                ctcp_event.command = u"CTCP_%s" % command
+                ctcp_event.command = "CTCP_%s" % command
                 ctcp_event.params = params
                 ctcp_event.source = event.source
                 ctcp_event.target = event.target
