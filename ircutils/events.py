@@ -171,8 +171,8 @@ class EventListener(object):
         for p, handler in self.handlers:
             try:
                 handler(*args)
-            except e as ex:
-                traceback.print_exc(ex)
+            except:
+                traceback.print_exc()
                 self.handlers.remove((p, handler))
     
     def notify(self, client, event):
