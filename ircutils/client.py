@@ -367,4 +367,4 @@ def _remove_channel_user_on_quit(client, event):
 
 def _add_channel_user(client, event):
     channel = event.target.lower()
-    client.channels[channel].user_list.append(event.source)
+    client.channels[channel].user_list.add(event.source)
