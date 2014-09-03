@@ -361,9 +361,8 @@ def _remove_channel_user_on_part(client, event):
 
 def _remove_channel_user_on_quit(client, event):
     # TODO: This solution is slow. There might be a better one.
-    for channel in client.channels:
-        if event.source in client.channels[channel].user_list:
-            client.channels[channel].user_list.remove(event.source)
+    for channel in client.channels.values():
+        channel.user_list.remove(event.source)
 
 
 def _add_channel_user(client, event):
