@@ -180,7 +180,7 @@ class Channel(object):
     """
     def __init__(self):
         self.name = None
-        self.user_list = []
+        self.user_list = set()
 
     def __str__(self):
         return "<Channel %s '%s users'>" % (self.name, len(self.user_list))
