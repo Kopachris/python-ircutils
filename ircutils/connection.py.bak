@@ -14,8 +14,8 @@ else:
     ssl_available = True
     import errno
 
-from . import protocol
-from . import responses
+import protocol
+import responses
 
 
 class Connection(asynchat.async_chat):
@@ -77,7 +77,7 @@ class Connection(asynchat.async_chat):
             >>> self.execute("PRIVMSG", "#channel", trailing="Hello!")
         
         """
-        params = [x for x in params if x is not None]
+        params = filter(lambda x:x is not None, params)
         if "trailing" in kwargs:
             params = list(params)
             if kwargs["trailing"] is not None:
@@ -122,11 +122,11 @@ class Connection(asynchat.async_chat):
         try:
             result = self.write(data)
             return result
-        except ssl.SSLError as why:
+        except ssl.SSLError, why:
             if why[0] == asyncore.EWOULDBLOCK:
                 return 0
             else:
-                raise ssl.SSLError(why)
+                raise ssl.SSLError, why
             return 0
         
         
@@ -138,7 +138,7 @@ class Connection(asynchat.async_chat):
                 self.handle_close()
                 return ''
             return data
-        except ssl.SSLError as why:
+        except ssl.SSLError, why:
             if why[0] in [asyncore.ECONNRESET, asyncore.ENOTCONN, 
                           asyncore.ESHUTDOWN]:
                 self.handle_close()
