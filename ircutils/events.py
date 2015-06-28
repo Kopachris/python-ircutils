@@ -143,7 +143,9 @@ class EventListener(object):
         use this method as handlers are automatically added.
                 
         """
-        bisect.insort(self.handlers, (priority, handler))
+        handler_priorities = zip(*self.handlers)
+        ins_loc = bisect.bisect(handler_priorities, priority)
+        self.handlers.insert(ins_loc, (priority, handler))
     
     def remove_handler(self, handler):
         """ This removes all handlers that are equal to the ``handler`` which
