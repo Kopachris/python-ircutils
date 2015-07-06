@@ -167,20 +167,12 @@ class EventListener(object):
         and the event.
         """
         for p, handler in self.handlers:
-<<<<<<< HEAD:ircutils3/events.py
             handler(*args)
             # try:
             #     handler(*args)
             # except Exception as ex:
             #     #traceback.print_exc(ex)
             #     self.handlers.remove((p, handler))
-=======
-            try:
-                handler(*args)
-            except Exception as ex:
-                traceback.print_exc(ex)
-                self.handlers.remove((p, handler))
->>>>>>> parent of cd07617... Revert "Ran 2to3":ircutils/events.py
     
     def notify(self, client, event):
         """ This is to be overridden when subclassed. It gets called after each
