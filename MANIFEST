@@ -1,6 +1,5 @@
 LICENSE
 README
-CHANGELOG
 setup.py
 ircutils/__init__.py
 ircutils/advanced_bot.py

@@ -1,5 +1,0 @@
-Notable differences from https://github.com/PiPeep/python-ircutils:
-
-
-* Modified channel user lists to use set instead of list
-* Ran 2to3 - original Python 2.7 sources backed up to *.py.bak
