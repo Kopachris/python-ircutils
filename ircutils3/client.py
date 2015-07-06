@@ -5,11 +5,11 @@ inherits from :class:`SimpleClient` so it has the methods listed below.
 """
 import collections
 
-import connection
-import ctcp
-import events
-import format
-import protocol
+from . import connection
+from . import ctcp
+from . import events
+from . import format
+from . import protocol
 
 
 class SimpleClient(object):
@@ -140,7 +140,7 @@ class SimpleClient(object):
         if channel is not None:
             # Builds a handler on-the-fly for joining init channels
             
-            if isinstance(channel, basestring):
+            if isinstance(channel, str):
                 channels = [channel]
             else:
                 channels = channel
@@ -361,7 +361,7 @@ def _remove_channel_user_on_part(client, event):
 
 def _remove_channel_user_on_quit(client, event):
     # TODO: This solution is slow. There might be a better one.
-    for channel in client.channels.values():
+    for channel in list(client.channels.values()):
         channel.user_list.remove(event.source)
 
 

@@ -2,8 +2,8 @@
 level of abstraction of the IRC protocol available in ``ircutils``.
 
 """
-import client
-import events
+from . import client
+from . import events
 
 
 class SimpleBot(client.SimpleClient):
@@ -58,4 +58,4 @@ class _TestBot(SimpleBot):
             "params": event.params
             }
         if self.verbose:
-            print "[{cmd}] s={src!r} t={tgt!r} p={params}".format(**kwds)
+            print("[{cmd}] s={src!r} t={tgt!r} p={params}".format(**kwds))
