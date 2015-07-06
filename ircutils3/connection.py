@@ -14,8 +14,8 @@ else:
     ssl_available = True
     import errno
 
-import protocol
-import responses
+from . import protocol
+from . import responses
 
 
 class Connection(asynchat.async_chat):
@@ -28,7 +28,7 @@ class Connection(asynchat.async_chat):
     def __init__(self, ipv6=False):
         asynchat.async_chat.__init__(self)
         self.ping_auto_respond = True
-        self.set_terminator("\r\n")
+        self.set_terminator(b"\r\n")
         self.collect_incoming_data = self._collect_incoming_data
         if ipv6:
             self.create_socket(socket.AF_INET6, socket.SOCK_STREAM)
@@ -57,10 +57,22 @@ class Connection(asynchat.async_chat):
         if password is not None:
             self.execute("PASS", password)
     
+    # def push(self, data):
+    #     if isinstance(data, str):
+    #         data = data.encode('UTF-8', errors='ignore')
+    #     asynchat.async_chat.push(self, data)
+    
+    def send(self, data):
+        if isinstance(data, str):
+            data = data.encode('UTF-8', errors='ignore')
+        return asynchat.async_chat.send(self, data)
+        
+    # def recv(self, buffer_size):
+    #     return asynchat.async_chat.recv(self, buffer_size).decode('UTF-8', errors='ignore')
     
     def found_terminator(self):
         """ Activated when ``\\r\\n`` is encountered. Do not call directly. """
-        data = "".join(self.incoming)
+        data = b"".join(self.incoming).decode('UTF-8', errors='ignore')
         self.incoming = []
         prefix, command, params = protocol.parse_line(data)
         if command == "PING" and self.ping_auto_respond:
@@ -77,7 +89,7 @@ class Connection(asynchat.async_chat):
             >>> self.execute("PRIVMSG", "#channel", trailing="Hello!")
         
         """
-        params = filter(lambda x:x is not None, params)
+        params = [x for x in params if x is not None]
         if "trailing" in kwargs:
             params = list(params)
             if kwargs["trailing"] is not None:
@@ -122,11 +134,11 @@ class Connection(asynchat.async_chat):
         try:
             result = self.write(data)
             return result
-        except ssl.SSLError, why:
+        except ssl.SSLError as why:
             if why[0] == asyncore.EWOULDBLOCK:
                 return 0
             else:
-                raise ssl.SSLError, why
+                raise ssl.SSLError(why)
             return 0
         
         
@@ -138,7 +150,7 @@ class Connection(asynchat.async_chat):
                 self.handle_close()
                 return ''
             return data
-        except ssl.SSLError, why:
+        except ssl.SSLError as why:
             if why[0] in [asyncore.ECONNRESET, asyncore.ENOTCONN, 
                           asyncore.ESHUTDOWN]:
                 self.handle_close()
