@@ -289,6 +289,11 @@ class ErrorListener(EventListener):
         if event.command == "ERROR":
             self.activate_handlers(client, event)
 
+class ModeListener(EventListener):
+    def notify(self, client, event):
+        if event.command == "MODE":
+            self.activate_handlers(client, event)
+
 
 
 standard = {
@@ -301,7 +306,8 @@ standard = {
     "quit": QuitListener,
     "part": PartListener,
     "nick_change": NickChangeListener,
-    "error": ErrorListener
+    "error": ErrorListener,
+    "mode": ModeListener,
     }
 
 
