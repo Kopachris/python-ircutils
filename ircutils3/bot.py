@@ -14,8 +14,8 @@ class SimpleBot(client.SimpleClient):
     to check that documentation to see more of what is available.
     
     """
-    def __init__(self, nick):
-        client.SimpleClient.__init__(self, nick)
+    def __init__(self, nick, mode="+B", auto_handle=True):
+        client.SimpleClient.__init__(self, nick, mode, auto_handle)
         self._autobind_handlers()
     
     def _autobind_handlers(self):
