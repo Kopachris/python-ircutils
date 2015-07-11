@@ -57,18 +57,10 @@ class Connection(asynchat.async_chat):
         if password is not None:
             self.execute("PASS", password)
     
-    # def push(self, data):
-    #     if isinstance(data, str):
-    #         data = data.encode('UTF-8', errors='ignore')
-    #     asynchat.async_chat.push(self, data)
-    
     def send(self, data):
         if isinstance(data, str):
             data = data.encode('UTF-8', errors='ignore')
         return asynchat.async_chat.send(self, data)
-        
-    # def recv(self, buffer_size):
-    #     return asynchat.async_chat.recv(self, buffer_size).decode('UTF-8', errors='ignore')
     
     def found_terminator(self):
         """ Activated when ``\\r\\n`` is encountered. Do not call directly. """
@@ -94,7 +86,8 @@ class Connection(asynchat.async_chat):
             params = list(params)
             if kwargs["trailing"] is not None:
                 params.append(":%s" % kwargs["trailing"])
-        self.push("%s %s\r\n" % (command.upper(), " ".join(params)))
+        cmd_line = "%s %s\r\n" % (command.upper(), " ".join(params))
+        self.push(bytes(cmd_line, 'UTF-8', errors='ignore'))
     
     
     def handle_error(self):
