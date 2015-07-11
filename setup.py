@@ -14,11 +14,11 @@ import os
 readme_file = os.path.join(os.path.dirname(__file__), 'README')
 
 setup(name='ircutils3',
-      version='0.2.0',
+      version='0.2.1',
       description='IRC framework and utilities. Great for bot creation.',
       long_description=open(readme_file).read(),
-      author='Evan Fosmark',
-      author_email='evan.fosmark@gmail.com',
+      author=['Christopher Koch', 'Evan Fosmark'],
+      author_email=['kopachris@gmail.com', 'evan.fosmark@gmail.com'],
       url='http://dev.guardedcode.com/projects/ircutils/',
       license="MIT/X11",
       platforms="Any",
