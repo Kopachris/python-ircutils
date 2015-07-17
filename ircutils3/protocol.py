@@ -138,7 +138,7 @@ def is_nick(nick):
 
 def filter_nick(nick):
     """ Removes all of the invalid characters from a nick. """
-    nick = filter(lambda ch:ch.isalnum() or ch in _special_chars, iter(nick))
+    nick = [ch for ch in iter(nick) if ch.isalnum() or ch in _special_chars]
     if len(nick) == 0:
         return None
     return nick
@@ -167,7 +167,7 @@ def ip_to_ascii(ip_address):
 
 def ascii_to_ip(ascii_ip_value):
     """ Converts the integer value to a quad IP format. """
-    ascii_ip_value = long(ascii_ip_value)
+    ascii_ip_value = int(ascii_ip_value)
     return str(socket.inet_ntoa(struct.pack('!L', ascii_ip_value)))
 
 

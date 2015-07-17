@@ -11,7 +11,7 @@ import bisect
 import collections
 import traceback
 
-import protocol
+from . import protocol
 
 
 class EventDispatcher(object):
@@ -34,7 +34,7 @@ class EventDispatcher(object):
         return self._listeners[name]
     
     def __iter__(self):
-        return iter(self._listeners.keys())
+        return iter(list(self._listeners.keys()))
     
     def dispatch(self, client, event):
         """ Notifies all of the listeners that an event is available.
@@ -42,7 +42,7 @@ class EventDispatcher(object):
         the listener is looking for will then activate its event handlers.
         
         """
-        for name, listener in self._listeners.items():
+        for name, listener in list(self._listeners.items()):
             if listener.handlers != []:
                 listener.notify(client, event)
 
@@ -143,7 +143,12 @@ class EventListener(object):
         use this method as handlers are automatically added.
                 
         """
-        bisect.insort(self.handlers, (priority, handler))
+        if len(self.handlers) == 0:
+            self.handlers.append((priority, handler))
+        else:
+            handler_priorities = list(zip(*self.handlers))[0]
+            ins_loc = bisect.bisect(handler_priorities, priority)
+            self.handlers.insert(ins_loc, (priority, handler))
     
     def remove_handler(self, handler):
         """ This removes all handlers that are equal to the ``handler`` which
@@ -162,11 +167,12 @@ class EventListener(object):
         and the event.
         """
         for p, handler in self.handlers:
-            try:
-                handler(*args)
-            except StandardError, ex:
-                traceback.print_exc(ex)
-                self.handlers.remove((p, handler))
+            handler(*args)
+            # try:
+            #     handler(*args)
+            # except Exception as ex:
+            #     #traceback.print_exc(ex)
+            #     self.handlers.remove((p, handler))
     
     def notify(self, client, event):
         """ This is to be overridden when subclassed. It gets called after each
@@ -283,6 +289,11 @@ class ErrorListener(EventListener):
         if event.command == "ERROR":
             self.activate_handlers(client, event)
 
+class ModeListener(EventListener):
+    def notify(self, client, event):
+        if event.command == "MODE":
+            self.activate_handlers(client, event)
+
 
 
 standard = {
@@ -295,7 +306,8 @@ standard = {
     "quit": QuitListener,
     "part": PartListener,
     "nick_change": NickChangeListener,
-    "error": ErrorListener
+    "error": ErrorListener,
+    "mode": ModeListener,
     }
 
 
@@ -434,7 +446,7 @@ class NameReplyListener(ReplyListener):
             channel = event.params[1].lower()
             names = event.params[2].strip().split(" ")
             # TODO: This line below is wrong. It doesn't use name symbols.
-            names = map(protocol.strip_name_symbol, names)
+            names = list(map(protocol.strip_name_symbol, names))
             self._name_lists[channel].name_list.extend(names)
         elif event.command == "RPL_ENDOFNAMES":
             # <channel> :End of NAMES list
@@ -498,7 +510,7 @@ class WhoisReplyListener(ReplyListener):
         elif event.command == "RPL_WHOISCHANNELS":
             # <nick> :*( ( "@" / "+" ) <channel> " " )
             channels = event.params[1].strip().split()
-            channels = map(protocol.strip_name_symbol, channels)
+            channels = list(map(protocol.strip_name_symbol, channels))
             self._whois_replies[event.params[0]].channels.extend(channels)
         elif event.command == "RPL_WHOISSERVER":
             # <nick> <server> :<server info> 
