@@ -13,7 +13,7 @@ import os
 
 readme_file = os.path.join(os.path.dirname(__file__), 'README')
 
-setup(name='ircutils3',
+setup(name='ircutils',
     version='0.3.1',
     description='IRC framework and utilities. Great for bot creation.',
     long_description=open(readme_file).read(),
@@ -22,7 +22,7 @@ setup(name='ircutils3',
     url='http://dev.guardedcode.com/projects/ircutils/',
     license="MIT/X11",
     platforms="Any",
-    packages=['ircutils3'],
+    packages=['ircutils'],
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Intended Audience :: Developers",
