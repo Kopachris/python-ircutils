@@ -14,7 +14,7 @@ import os
 readme_file = os.path.join(os.path.dirname(__file__), 'README')
 
 setup(name='ircutils3',
-    version='0.2.2',
+    version='0.3.1',
     description='IRC framework and utilities. Great for bot creation.',
     long_description=open(readme_file).read(),
     author=['Christopher Koch', 'Evan Fosmark'],
