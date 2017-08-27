@@ -1,0 +1,1 @@
+"""Implement SimpleClient, a base class for more complicated clients"""

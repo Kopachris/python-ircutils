@@ -1,0 +1,1 @@
+"""Implement SimpleServer, a base class for IRC servers"""
