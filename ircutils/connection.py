@@ -19,8 +19,9 @@ class BaseConnection:
 
 class ClientConnection:
 
-    def __init__(self, host, port, ssl, connect=False):
+    def __init__(self, host: str, port: int, ssl: bool = False, connect: bool = False):
         self.loop = asyncio.get_event_loop()
+
         self.host = host
         self.port = port
         self.ssl = ssl
@@ -40,13 +41,19 @@ class ClientConnection:
         if self.ssl:
             if not self.ssl_context:
                 # create a default ssl context for the client
-                self.ssl_context = ssl.SSLContext()
+                ssl_context = ssl.SSLContext()
+            else:
+                # use existing ssl context
+                ssl_context = self.ssl_context
+        else:
+            # pass False to open_connection(), no ssl
+            ssl_context = False
 
-            self.reader, self.writer = asyncio.open_connection(self.host,
-                                                               self.port,
-                                                               ssl=self.ssl_context,
-                                                               loop=self.loop,
-                                                               )
+        self.reader, self.writer = asyncio.open_connection(self.host,
+                                                           self.port,
+                                                           ssl=ssl_context,
+                                                           loop=self.loop,
+                                                           )
 
 
 class ServerConnection:
