@@ -60,7 +60,7 @@ class IRCUser:
 
     def join(self, channel):
         """Add this user to the channel's user list and add the channel to this
-        user's list of joined channels.
+        user's list of joined channels. Doesn't send a JOIN command.
         """
 
         if channel not in self.channels:
@@ -69,7 +69,7 @@ class IRCUser:
 
     def part(self, channel):
         """Remove this user from the channel's user list and remove the channel
-        from this user's list of joined channels.
+        from this user's list of joined channels. Doesn't send a PART command.
         """
 
         if channel in self.channels:
@@ -78,7 +78,7 @@ class IRCUser:
 
     def quit(self):
         """Remove this user from all channels and reinitialize the user's list
-        of joined channels.
+        of joined channels. Does not actually execute a QUIT command.
         """
 
         for c in self.channels:
@@ -86,7 +86,8 @@ class IRCUser:
         self.channels = []
 
     def change_nick(self, nick):
-        """Update this user's nick in all joined channels."""
+        """Update this user's nick in all joined channels. Does not actually
+        execute an IRC 'NICK' command."""
 
         old_nick = self.nick
         self.nick = IRCstr(nick)
